@@ -7,7 +7,7 @@
 
 ### Setting up
 Prerequisites (Debian based systems):
-`sudo apt install build-essential nasm bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo libisl-dev`
+`sudo apt install build-essential nasm bison flex libgmp3-dev libmpc-dev libmpfr-dev texinfo libisl-dev qemu-system-x86 xorriso`
 
 Build cross compiling toolchain:
 `make toolchain`
