@@ -1,7 +1,7 @@
 TARGET_ISO=pantheon.iso
 TARGET=kernel.bin
 TARGET_ARCH=i686-elf
-SOURCE_FILES=boot.asm kernel.c
+SOURCE_FILES=boot.asm kernel.c LibKernel/memory.c LibKernel/string.c LibKernel/print.c
 
 OBJECT_FILES=$(addsuffix .o,$(SOURCE_FILES))
 DEP_FILES=$(addsuffix .d,$(SOURCE_FILES))
