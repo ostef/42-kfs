@@ -1,3 +1,4 @@
+TARGET_ISO=pantheon.iso
 TARGET=kernel.bin
 TARGET_ARCH=i686-elf
 SOURCE_FILES=boot.asm kernel.c
@@ -7,6 +8,7 @@ DEP_FILES=$(addsuffix .d,$(SOURCE_FILES))
 
 SOURCE_DIR=Source
 INCLUDE_DIRS=$(SOURCE_DIR)
+SYSTEM_DIR=System
 BUILD_DIR=.build
 
 TOOLS_PREFIX=$(HOME)/kfs-tools
@@ -20,7 +22,11 @@ C_INCLUDE_DIRS=$(addprefix -I,$(INCLUDE_DIRS))
 LIBS=gcc
 LINK_FLAGS=-ffreestanding -nostdlib $(addprefix -l,$(LIBS))
 
-all: $(TARGET)
+all: $(TARGET_ISO)
+
+$(TARGET_ISO): $(TARGET)
+	cp $(TARGET) $(SYSTEM_DIR)/boot/pantheon
+	grub-mkrescue $(SYSTEM_DIR) -o $@
 
 $(TARGET): $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(SOURCE_DIR)/linker.ld
 	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) -o $@
