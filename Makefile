@@ -23,7 +23,7 @@ LINK_FLAGS=-ffreestanding -nostdlib $(addprefix -l,$(LIBS))
 all: $(TARGET)
 
 $(TARGET): $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(SOURCE_DIR)/linker.ld
-	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) -o $@
+	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) -o $@
 	grub-file --is-x86-multiboot $@
 
 $(BUILD_DIR)/%.asm.o: $(SOURCE_DIR)/%.asm Makefile
@@ -35,6 +35,14 @@ $(BUILD_DIR)/%.c.o: $(SOURCE_DIR)/%.c Makefile
 	$(GCC) $(C_FLAGS) $(C_INCLUDE_DIRS) -MMD -MP -MF$(BUILD_DIR)/$*.c.d -c $< -o $@
 
 -include $(addprefix $(BUILD_DIR)/,$(DEP_FILES))
+
+clean:
+	rm -rf .build
+
+fclean: clean
+	rm $(TARGET)
+
+re: fclean all
 
 toolchain: | $(LD) $(GCC) $(GDB)
 
