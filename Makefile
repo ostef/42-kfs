@@ -15,7 +15,7 @@ LD=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-ld
 GCC=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gcc
 GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 
-C_FLAGS=-ffreestanding -Wall -Wextra
+C_FLAGS=-ffreestanding -Wall -Wextra -O0 -g
 C_INCLUDE_DIRS=$(addprefix -I,$(INCLUDE_DIRS))
 LIBS=gcc
 LINK_FLAGS=-ffreestanding -nostdlib $(addprefix -l,$(LIBS))
