@@ -1,14 +1,14 @@
 #include "LibKernel/libkernel.h"
 
-int k_print_char(char c) {
+k_size k_print_char(char c) {
     // @Todo
     (void)c;
 
     return 1;
 }
 
-int k_print_str(const char *str) {
-    int64_t i = 0;
+k_size k_print_str(const char *str) {
+    k_size i = 0;
     while (str[i]) {
         k_print_char(str[i]);
         i += 1;
@@ -17,27 +17,14 @@ int k_print_str(const char *str) {
     return i;
 }
 
-int k_print_int(int x) {
-    int64_t result = 0;
-
-    if (x < 0) {
-        result += k_print_char('-');
-        result += k_print_uint((unsigned int)-x);
-    } else {
-        result += k_print_uint((unsigned int)x);
-    }
-
-    return result;
-}
-
-int k_print_uint_base(unsigned int x, unsigned int base_n, const char *base) {
-    if (base_n < 2) {
+k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt) {
+    if (fmt.base_n < 2 || !fmt.base) {
         return 0;
     }
 
-    char buff[64];
+    char buff[64]; // Max base 2 number is assumed to be 64 digits (64-bit ints)
 
-    int64_t length = 0;
+    k_size length = 0;
     unsigned int x2 = x;
     while (length == 0 || x2 > 0) {
         length += 1;
@@ -48,41 +35,72 @@ int k_print_uint_base(unsigned int x, unsigned int base_n, const char *base) {
     if (length < 0) {
         length = 0;
     }
-    if (length >= sizeof(buff)) {
+    if (length > sizeof(buff)) {
         length = sizeof(buff);
     }
 
-    int64_t i = 0;
-    while (i < length) {
-        unsigned int digit = x % base_n;
-        x /= base_n;
+    for (k_size i = 0; i < length; i += 1) {
+        unsigned int digit = x % fmt.base_n;
+        x /= fmt.base_n;
 
-        buff[length - i - 1] = base[digit];
-
-        i += 1;
+        buff[length - i - 1] = fmt.base[digit];
     }
 
-    int64_t result = 0;
-    i = 0;
-    while (i < length) {
+    k_size result = 0;
+    for (k_size i = 0; i < fmt.min_digits - length; i += 1) {
+        result += k_print_char(fmt.pad_char);
+    }
+
+    for (k_size i = 0; i < length; i += 1) {
         result += k_print_char(buff[i]);
-        i += 1;
     }
 
     return result;
 }
 
-int k_print_uint(unsigned int x) {
-    return k_print_uint_base(x, 10, "0123456789");
+k_size k_print_int_formatted(int x, K_FormatInt fmt) {
+    k_size result = 0;
+
+    if (x < 0) {
+        result += k_print_char('-');
+        result += k_print_uint_formatted((unsigned int)-x, fmt);
+    } else {
+        result += k_print_uint_formatted((unsigned int)x, fmt);
+    }
+
+    return result;
 }
 
-int k_print_hex(unsigned int x) {
-    return k_print_uint_base(x, 16, "0123456789abcdef");
+k_size k_print_int(int x) {
+    return k_print_int_formatted(x, (K_FormatInt){
+            .min_digits=0,
+            .pad_char=' ',
+            .base_n=10,
+            .base="0123456789",
+        });
 }
 
-int k_vprintf(const char *fmt, va_list va) {
-    int64_t result = 0;
-    int64_t i = 0;
+k_size k_print_uint(unsigned int x) {
+    return k_print_uint_formatted(x, (K_FormatInt){
+            .min_digits=0,
+            .pad_char=' ',
+            .base_n=10,
+            .base="0123456789"
+        });
+}
+
+k_size k_print_hex(unsigned int x) {
+    return k_print_uint_formatted(x, (K_FormatInt){
+            .min_digits=0,
+            .pad_char=' ',
+            .base_n=16,
+            .base="0123456789abcdef"
+        });
+}
+
+k_size k_vprintf(const char *fmt, va_list va) {
+    k_size result = 0;
+    k_size i = 0;
     while (fmt[i]) {
         if (fmt[i] == '%') {
             i += 1;
@@ -127,11 +145,11 @@ int k_vprintf(const char *fmt, va_list va) {
     return result;
 }
 
-int k_printf(const char *fmt, ...) {
+k_size k_printf(const char *fmt, ...) {
     va_list va;
 
     va_start(va, fmt);
-    int result = k_vprintf(fmt, va);
+    k_size result = k_vprintf(fmt, va);
     va_end(va);
 
     return result;

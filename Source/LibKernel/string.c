@@ -1,7 +1,7 @@
 #include "LibKernel/libkernel.h"
 
-int64_t k_strlen(const char *str) {
-    int64_t i = 0;
+k_size k_strlen(const char *str) {
+    k_size i = 0;
     while (str[i]) {
         i += 1;
     }
@@ -10,7 +10,7 @@ int64_t k_strlen(const char *str) {
 }
 
 char *k_strcpy(char *dst, const char *src) {
-    int64_t i = 0;
+    k_size i = 0;
     while (src[i]) {
         dst[i] = src[i];
         i += 1;
@@ -20,7 +20,7 @@ char *k_strcpy(char *dst, const char *src) {
 }
 
 int k_strcmp(const char *a, const char *b) {
-    int64_t i = 0;
+    k_size i = 0;
     while (a[i] && b[i] && a[i] == b[i]) {
         i += 1;
     }

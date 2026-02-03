@@ -5,21 +5,34 @@
 #include <stdint.h>
 #include <stdarg.h>
 
-void *k_memset(void *dst, uint8_t value, int64_t length);
-void *k_memcpy(void *dst, const void *src, int64_t length);
-int k_memcmp(const void *a, const void *b, int64_t length);
+typedef int64_t k_size;
+typedef uint64_t k_usize;
+typedef int8_t k_sbyte;
+typedef uint8_t k_byte;
 
-int64_t k_strlen(const char *str);
+void *k_memset(void *dst, k_byte value, k_size length);
+void *k_memcpy(void *dst, const void *src, k_size length);
+int k_memcmp(const void *a, const void *b, k_size length);
+
+k_size k_strlen(const char *str);
 char *k_strcpy(char *dst, const char *src);
 int k_strcmp(const char *a, const char *b);
 bool k_streq(const char *a, const char *b);
 
-int k_print_char(char c);
-int k_print_str(const char *str);
-int k_print_uint_base(unsigned int x, unsigned int base_n, const char *base);
-int k_print_int(int x);
-int k_print_uint(unsigned int x);
-int k_print_hex(unsigned int x);
+typedef struct K_FormatInt {
+    int min_digits;
+    char pad_char;
+    unsigned int base_n;
+    const char *base;
+} K_FormatInt;
 
-int k_vprintf(const char *fmt, va_list va);
-int k_printf(const char *fmt, ...);
+k_size k_print_char(char c);
+k_size k_print_str(const char *str);
+k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt);
+k_size k_print_int_formatted(int x, K_FormatInt fmt);
+k_size k_print_int(int x);
+k_size k_print_uint(unsigned int x);
+k_size k_print_hex(unsigned int x);
+
+k_size k_vprintf(const char *fmt, va_list va);
+k_size k_printf(const char *fmt, ...);

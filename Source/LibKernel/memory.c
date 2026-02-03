@@ -1,24 +1,24 @@
 #include "LibKernel/libkernel.h"
 
-void *k_memset(void *dst, uint8_t value, int64_t length) {
-    for (int64_t i = 0; i < length; i += 1) {
-        ((uint8_t *)dst)[i] = value;
+void *k_memset(void *dst, k_byte value, k_size length) {
+    for (k_size i = 0; i < length; i += 1) {
+        ((k_byte *)dst)[i] = value;
     }
 
     return dst;
 }
 
-void *k_memcpy(void *dst, const void *src, int64_t length) {
-    for (int64_t i = 0; i < length; i += 1) {
-        ((uint8_t *)dst)[i] = ((const uint8_t *)src)[i];
+void *k_memcpy(void *dst, const void *src, k_size length) {
+    for (k_size i = 0; i < length; i += 1) {
+        ((k_byte *)dst)[i] = ((const k_byte *)src)[i];
     }
 
     return dst;
 }
 
-int k_memcmp(const void *a, const void *b, int64_t length) {
-    int64_t i = 0;
-    while (i < length && ((const uint8_t *)a)[i] == ((const uint8_t *)b)[i]) {
+int k_memcmp(const void *a, const void *b, k_size length) {
+    k_size i = 0;
+    while (i < length && ((const k_byte *)a)[i] == ((const k_byte *)b)[i]) {
         i += 1;
     }
 
@@ -26,5 +26,5 @@ int k_memcmp(const void *a, const void *b, int64_t length) {
         return 0;
     }
 
-    return (int)((const uint8_t *)a)[i] - (int)((const uint8_t *)b)[i];
+    return (int)((const k_byte *)a)[i] - (int)((const k_byte *)b)[i];
 }
