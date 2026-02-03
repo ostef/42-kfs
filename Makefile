@@ -25,7 +25,7 @@ GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 C_FLAGS=-ffreestanding -Wall -Wextra -O0 -g
 C_INCLUDE_DIRS=$(addprefix -I,$(INCLUDE_DIRS))
 LIBS=gcc
-LINK_FLAGS=-ffreestanding -nostdlib $(addprefix -l,$(LIBS))
+LINK_FLAGS=-ffreestanding -nostdlib
 
 all: $(TARGET_ISO)
 
@@ -34,7 +34,7 @@ $(TARGET_ISO): $(TARGET)
 	grub-mkrescue $(SYSTEM_DIR) -o $@
 
 $(TARGET): $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(SOURCE_DIR)/linker.ld
-	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) -o $@
+	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(addprefix -l,$(LIBS)) -o $@
 	grub-file --is-x86-multiboot $@
 
 $(BUILD_DIR)/%.asm.o: $(SOURCE_DIR)/%.asm Makefile

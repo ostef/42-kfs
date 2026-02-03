@@ -16,7 +16,7 @@ k_size k_print_str(const char *str) {
     return i;
 }
 
-k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt) {
+k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
     if (fmt.base_n < 2 || !fmt.base) {
         return 0;
     }
@@ -24,7 +24,7 @@ k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt) {
     char buff[64]; // Max base 2 number is assumed to be 64 digits (64-bit ints)
 
     k_size length = 0;
-    unsigned int x2 = x;
+    uint64_t x2 = x;
     while (length == 0 || x2 > 0) {
         length += 1;
         x2 /= 10;
@@ -39,7 +39,7 @@ k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt) {
     }
 
     for (k_size i = 0; i < length; i += 1) {
-        unsigned int digit = x % fmt.base_n;
+        uint64_t digit = x % fmt.base_n;
         x /= fmt.base_n;
 
         buff[length - i - 1] = fmt.base[digit];
@@ -57,14 +57,14 @@ k_size k_print_uint_formatted(unsigned int x, K_FormatInt fmt) {
     return result;
 }
 
-k_size k_print_int_formatted(int x, K_FormatInt fmt) {
+k_size k_print_int_formatted(int64_t x, K_FormatInt fmt) {
     k_size result = 0;
 
     if (x < 0) {
         result += k_print_char('-');
-        result += k_print_uint_formatted((unsigned int)-x, fmt);
+        result += k_print_uint_formatted((uint64_t)-x, fmt);
     } else {
-        result += k_print_uint_formatted((unsigned int)x, fmt);
+        result += k_print_uint_formatted((uint64_t)x, fmt);
     }
 
     return result;
@@ -97,6 +97,18 @@ k_size k_print_hex(unsigned int x) {
         });
 }
 
+k_size k_print_ptr(const void *ptr) {
+    k_size result= k_print_str("0x");
+    result += k_print_uint_formatted((uintptr_t)ptr, (K_FormatInt){
+            .min_digits=sizeof(uintptr_t),
+            .pad_char='0',
+            .base_n=16,
+            .base="0123456789abcdef"
+        });
+
+    return result;
+}
+
 k_size k_vprintf(const char *fmt, va_list va) {
     k_size result = 0;
     k_size i = 0;
@@ -127,6 +139,11 @@ k_size k_vprintf(const char *fmt, va_list va) {
             case 'x': {
                 unsigned int u = va_arg(va, unsigned int);
                 result += k_print_hex(u);
+            } break;
+
+            case 'p': {
+                const void *p = va_arg(va, const void *);
+                result += k_print_ptr(p);
             } break;
 
             case 'c': {
