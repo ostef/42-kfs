@@ -34,7 +34,7 @@ k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
     if (length < 0) {
         length = 0;
     }
-    if (length > sizeof(buff)) {
+    if (length > (k_size)sizeof(buff)) {
         length = sizeof(buff);
     }
 
