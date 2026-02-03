@@ -28,7 +28,7 @@ k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
     uint64_t x2 = x;
     while (length == 0 || x2 > 0) {
         length += 1;
-        x2 /= 10;
+        x2 /= fmt.base_n;
     }
 
     // Should not happen but as a safety measure
