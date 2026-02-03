@@ -1,9 +1,8 @@
 #include "LibKernel/libkernel.h"
+#include "terminal.h"
 
 k_size k_print_char(char c) {
-    // @Todo
-    (void)c;
-
+    terminal_putchar(c);
     return 1;
 }
 
