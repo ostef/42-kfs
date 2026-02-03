@@ -44,7 +44,7 @@ fclean: clean
 
 re: fclean all
 
-toolchain: | $(LD) $(GCC) $(GDB)
+toolchain: $(LD) $(GCC) $(GDB)
 
 BINUTILS_VERSION=2.45
 GCC_VERSION=15.2.0
