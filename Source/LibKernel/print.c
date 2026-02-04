@@ -100,7 +100,7 @@ k_size k_print_hex(unsigned int x) {
 k_size k_print_ptr(const void *ptr) {
     k_size result= k_print_str("0x");
     result += k_print_uint_formatted((uintptr_t)ptr, (K_FormatInt){
-            .min_digits=sizeof(uintptr_t),
+            .min_digits=sizeof(uintptr_t) * 2,
             .pad_char='0',
             .base_n=16,
             .base="0123456789abcdef"
