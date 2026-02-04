@@ -125,7 +125,7 @@ k_size k_vprintf(const char *fmt, va_list va) {
                 result += k_print_str(str);
             } break;
 
-            case 'n':
+            case 'd':
             case 'i': {
                 int i = va_arg(va, int);
                 result += k_print_int(i);
