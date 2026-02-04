@@ -1,5 +1,5 @@
-#ifndef TERMINAL_H
-#define TERMINAL_H
+#ifndef tty_H
+#define tty_H
 
 typedef enum {
     ANSI_STATE_NORMAL,
@@ -7,11 +7,11 @@ typedef enum {
     ANSI_STATE_CSI
 } ansi_state_t;
 
-void terminal_initialize(void);
-void terminal_putchar(char c);
-void terminal_clear(void);
-void terminal_scroll_down(void);
+void tty_initialize(void);
+void tty_putchar(char c);
+void tty_clear(void);
+void tty_scroll_down(void);
 
-void terminal_putstr(const char* str); // tmp
+void tty_putstr(const char* str); // tmp
 
-#endif // TERMINAL_H
+#endif // tty_H
