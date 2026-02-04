@@ -97,6 +97,15 @@ k_size k_print_hex(unsigned int x) {
         });
 }
 
+k_size k_print_bin(unsigned int x) {
+    return k_print_uint_formatted(x, (K_FormatInt){
+            .min_digits=0,
+            .pad_char=' ',
+            .base_n=2,
+            .base="01"
+        });
+}
+
 k_size k_print_ptr(const void *ptr) {
     k_size result= k_print_str("0x");
     result += k_print_uint_formatted((uintptr_t)ptr, (K_FormatInt){
@@ -139,6 +148,11 @@ k_size k_vprintf(const char *fmt, va_list va) {
             case 'x': {
                 unsigned int u = va_arg(va, unsigned int);
                 result += k_print_hex(u);
+            } break;
+
+            case 'b': {
+                unsigned int u = va_arg(va, unsigned int);
+                result += k_print_bin(u);
             } break;
 
             case 'p': {

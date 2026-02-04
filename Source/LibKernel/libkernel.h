@@ -41,6 +41,7 @@ k_size k_print_int_formatted(int64_t x, K_FormatInt fmt);
 k_size k_print_int(int x);
 k_size k_print_uint(unsigned int x);
 k_size k_print_hex(unsigned int x);
+k_size k_print_bin(unsigned int x);
 k_size k_print_ptr(const void *ptr);
 
 k_size k_vprintf(const char *fmt, va_list va);
