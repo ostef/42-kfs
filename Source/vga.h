@@ -3,6 +3,10 @@
 
 #include <stdint.h>
 
+#define VGA_WIDTH 80
+#define VGA_HEIGHT 25
+#define VGA_MEMORY ((uint16_t*) 0xB8000)
+
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -22,8 +26,18 @@ enum vga_color {
 	VGA_COLOR_WHITE = 15,
 };
 
+extern uint8_t g_terminal_color;
+
 static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
 	return fg | bg << 4;
+}
+
+static inline uint8_t vga_entry_color_fg(enum vga_color fg) {
+	return vga_entry_color(fg, g_terminal_color >> 4);
+}
+
+static inline uint8_t vga_entry_color_bg(enum vga_color bg) {
+	return vga_entry_color(g_terminal_color & 0x0F, bg);
 }
 
 static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
