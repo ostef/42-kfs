@@ -3,7 +3,6 @@
 
 #include "vga.h"
 #include "tty.h"
-#include "LibKernel/libkernel.h"
 
 static size_t g_tty_row;
 static size_t g_tty_column;
@@ -95,14 +94,16 @@ void tty_putchar(char c) {
     }
 }
 
-void tty_putstr(const char* str)
+k_size tty_putstr(const char* str)
 {
-    char		c;
+	k_size			i;
+    char			c;
     ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
-    int			param;
+    int				param;
 
-    while (*str) {
-        c = *str++;
+	i = 0;
+    while (str[i]) {
+        c = str[i++];
 
         if ( ansi_state == ANSI_STATE_NORMAL) {
 		if (c == '\x1b')
@@ -139,4 +140,5 @@ void tty_putstr(const char* str)
 		}
 	}
     }
+	return i;
 }
