@@ -46,3 +46,5 @@ k_size k_print_ptr(const void *ptr);
 
 k_size k_vprintf(const char *fmt, va_list va);
 k_size k_printf(const char *fmt, ...);
+
+k_size k_printf(const char *fmt, ...);

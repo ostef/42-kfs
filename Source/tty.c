@@ -79,8 +79,8 @@ void tty_putchar(char c) {
             g_tty_row = VGA_HEIGHT - 1;
         }
         g_tty_column = 0;
-        
-        return ;        
+
+        return ;
     }
 
     tty_putentryat(c, g_tty_color, g_tty_column, g_tty_row);

@@ -1,7 +1,7 @@
-#ifndef tty_H
-#define tty_H
+#ifndef TTY_H
+#define TTY_H
 
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 
 typedef enum {
     ANSI_STATE_NORMAL,
@@ -16,4 +16,4 @@ void	tty_scroll_down(void);
 k_size	tty_putstr(const char* str);
 
 
-#endif // tty_H
+#endif // TTY_H

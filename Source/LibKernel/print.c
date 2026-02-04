@@ -1,4 +1,4 @@
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 #include "tty.h"
 
 k_size k_print_char(char c) {
