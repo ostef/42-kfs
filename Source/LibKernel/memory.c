@@ -1,4 +1,4 @@
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 
 void *k_memset(void *dst, k_byte value, k_size length) {
     for (k_size i = 0; i < length; i += 1) {

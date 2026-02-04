@@ -3,7 +3,7 @@
 
 #include "vga.h"
 #include "tty.h"
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 
 static size_t g_terminal_row;
 static size_t g_terminal_column;
@@ -80,8 +80,8 @@ void terminal_putchar(char c) {
             g_terminal_row = VGA_HEIGHT - 1;
         }
         g_terminal_column = 0;
-        
-        return ;        
+
+        return ;
     }
 
     terminal_putentryat(c, g_terminal_color, g_terminal_column, g_terminal_row);

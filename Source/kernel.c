@@ -1,4 +1,4 @@
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 #include "tty.h"
 
 void kernel_main(void) {

@@ -1,4 +1,4 @@
-#include "LibKernel/libkernel.h"
+#include "libkernel.h"
 
 k_size k_strlen(const char *str) {
     k_size i = 0;
