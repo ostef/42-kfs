@@ -3,7 +3,7 @@ TARGET=kernel.bin
 TARGET_ARCH=i686-elf
 SOURCE_FILES=boot.asm \
 	kernel.c \
-	terminal.c \
+	tty.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
 	LibKernel/print.c

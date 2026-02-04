@@ -1,5 +1,5 @@
 #include "LibKernel/libkernel.h"
-#include "terminal.h"
+#include "tty.h"
 
 k_size k_print_char(char c) {
     terminal_putchar(c);

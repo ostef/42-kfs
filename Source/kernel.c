@@ -1,5 +1,5 @@
 #include "LibKernel/libkernel.h"
-#include "terminal.h"
+#include "tty.h"
 
 void kernel_main(void) {
     terminal_initialize();
