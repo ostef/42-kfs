@@ -27,14 +27,14 @@ k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
     uint64_t x2 = x;
     while (length == 0 || x2 > 0) {
         length += 1;
-        x2 /= 10;
+        x2 /= fmt.base_n;
     }
 
     // Should not happen but as a safety measure
     if (length < 0) {
         length = 0;
     }
-    if (length > sizeof(buff)) {
+    if (length > (k_size)sizeof(buff)) {
         length = sizeof(buff);
     }
 
@@ -97,10 +97,19 @@ k_size k_print_hex(unsigned int x) {
         });
 }
 
+k_size k_print_bin(unsigned int x) {
+    return k_print_uint_formatted(x, (K_FormatInt){
+            .min_digits=0,
+            .pad_char=' ',
+            .base_n=2,
+            .base="01"
+        });
+}
+
 k_size k_print_ptr(const void *ptr) {
     k_size result= k_print_str("0x");
     result += k_print_uint_formatted((uintptr_t)ptr, (K_FormatInt){
-            .min_digits=sizeof(uintptr_t),
+            .min_digits=sizeof(uintptr_t) * 2,
             .pad_char='0',
             .base_n=16,
             .base="0123456789abcdef"
@@ -125,7 +134,7 @@ k_size k_vprintf(const char *fmt, va_list va) {
                 result += k_print_str(str);
             } break;
 
-            case 'n':
+            case 'd':
             case 'i': {
                 int i = va_arg(va, int);
                 result += k_print_int(i);
@@ -139,6 +148,11 @@ k_size k_vprintf(const char *fmt, va_list va) {
             case 'x': {
                 unsigned int u = va_arg(va, unsigned int);
                 result += k_print_hex(u);
+            } break;
+
+            case 'b': {
+                unsigned int u = va_arg(va, unsigned int);
+                result += k_print_bin(u);
             } break;
 
             case 'p': {

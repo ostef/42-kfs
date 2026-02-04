@@ -5,8 +5,16 @@
 #include <stdint.h>
 #include <stdarg.h>
 
+#if __SIZEOF_SIZE_T__ == 4
+typedef int32_t k_size;
+typedef uint32_t k_usize;
+#elif __SIZEOF_SIZE_T == 8
 typedef int64_t k_size;
 typedef uint64_t k_usize;
+#else
+#error "Expected 32 or 64 bits for size_t type"
+#endif
+
 typedef int8_t k_sbyte;
 typedef uint8_t k_byte;
 
@@ -33,6 +41,7 @@ k_size k_print_int_formatted(int64_t x, K_FormatInt fmt);
 k_size k_print_int(int x);
 k_size k_print_uint(unsigned int x);
 k_size k_print_hex(unsigned int x);
+k_size k_print_bin(unsigned int x);
 k_size k_print_ptr(const void *ptr);
 
 k_size k_vprintf(const char *fmt, va_list va);
