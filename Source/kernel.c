@@ -4,6 +4,5 @@
 void kernel_main(void) {
     terminal_initialize();
 
-    k_print_str("Hello, Kernel World!\n");
-    k_print_str("Hello, Kernel World!1\n");
+    k_printf("Hello Kernel!\nkernel_main=%p\n", kernel_main);
 }
