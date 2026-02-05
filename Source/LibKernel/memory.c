@@ -9,8 +9,14 @@ void *k_memset(void *dst, k_byte value, k_size length) {
 }
 
 void *k_memcpy(void *dst, const void *src, k_size length) {
-    for (k_size i = 0; i < length; i += 1) {
-        ((k_byte *)dst)[i] = ((const k_byte *)src)[i];
+    if (dst < src) {
+        for (k_size i = 0; i < length; i += 1) {
+            ((k_byte *)dst)[i] = ((const k_byte *)src)[i];
+        }
+    } else if (dst > src) {
+        for (k_size i = length - 1; i >= 0; i -= 1) {
+            ((k_byte *)dst)[i] = ((const k_byte *)src)[i];
+        }
     }
 
     return dst;
