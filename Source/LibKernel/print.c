@@ -7,7 +7,14 @@ k_size_t k_print_char(char c) {
 }
 
 k_size_t k_print_str(const char *str) {
-	return tty_putstr(str);
+    k_size_t i;
+    
+    i = 0;
+    while (str[i]) {
+        k_print_char(str[i++]);
+    }
+
+    return i;
 }
 
 k_size_t k_print_uint_formatted(uint64_t x, k_format_int_t fmt) {

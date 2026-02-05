@@ -14,7 +14,6 @@ void	tty_initialize(void);
 void	tty_putchar(char c);
 void	tty_clear(void);
 void	tty_scroll_down(void);
-k_size_t	tty_putstr(const char* str);
 
 
 #endif // TTY_H

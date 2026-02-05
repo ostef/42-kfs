@@ -4,10 +4,12 @@
 #include "vga.h"
 #include "tty.h"
 
-static size_t g_tty_row;
-static size_t g_tty_column;
-uint8_t g_tty_color;
-uint16_t* g_tty_buffer = (uint16_t*)VGA_MEMORY;
+static size_t   g_tty_row;
+static size_t   g_tty_column;
+uint8_t         g_tty_color;
+uint16_t*       g_tty_buffer = (uint16_t*)VGA_MEMORY;
+ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
+int				param;
 
 uint8_t ansi_to_vga(uint8_t ansi) {
 	switch (ansi) {
@@ -83,62 +85,47 @@ void tty_putchar(char c) {
 		return ;
 	}
 
-	tty_putentryat(c, g_tty_color, g_tty_column, g_tty_row);
+    if ( ansi_state == ANSI_STATE_NORMAL) {
+        if (c == '\x1b')
+            ansi_state = ANSI_STATE_ESC;
+        else {
+            tty_putentryat(c, g_tty_color, g_tty_column, g_tty_row);
 
-	if (++g_tty_column == VGA_WIDTH) {
-		g_tty_column = 0;
+            if (++g_tty_column == VGA_WIDTH) {
+                g_tty_column = 0;
 
-		if (++g_tty_row == VGA_HEIGHT) {
-			g_tty_row = 0;
-		}
-	}
-}
-
-k_size_t tty_putstr(const char* str)
-{
-	k_size_t			i;
-	char			c;
-	ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
-	int				param;
-
-	i = 0;
-	while (str[i]) {
-		c = str[i++];
-
-		if ( ansi_state == ANSI_STATE_NORMAL) {
-		if (c == '\x1b')
-			ansi_state = ANSI_STATE_ESC;
-		else
-			tty_putchar(c);
-		}
-	else if (ansi_state == ANSI_STATE_ESC) {
-		if (c == '[') {
-			ansi_state = ANSI_STATE_CSI;
-			param = 0;
-		}
-		else
-			ansi_state = ANSI_STATE_NORMAL;
-	}
-	else if (ansi_state == ANSI_STATE_CSI) {
-		if (c >= '0' && c <= '9') {
-			param = param * 10 + (c - '0');
-		}
-		else {
-			// Only handle the 'm' command
-			if (c == 'm') {
-				if (param == 0) {
-					g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-				}
-				else if ((param >= 30 && param <= 37) || (param >= 90 && param <= 97)) {
-					g_tty_color = vga_entry_color_fg(ansi_to_vga(param));
-				}
-				else if ((param >= 40 && param <= 47) || (param >= 100 && param <= 107)) {
-					g_tty_color = vga_entry_color_bg(ansi_to_vga(param - 10));
-				}
-				ansi_state = ANSI_STATE_NORMAL;
-			}
-		}
-	}
-	}
-	return i;
+                if (++g_tty_row == VGA_HEIGHT) {
+                    g_tty_row = 0;
+                }
+            }
+        }
+    }
+    else if (ansi_state == ANSI_STATE_ESC) {
+        if (c == '[') {
+            ansi_state = ANSI_STATE_CSI;
+            param = 0;
+        }
+        else
+            ansi_state = ANSI_STATE_NORMAL;
+    }
+    else if (ansi_state == ANSI_STATE_CSI) {
+        if (c >= '0' && c <= '9') {
+            param = param * 10 + (c - '0');
+        }
+        else {
+            // Only handle the 'm' command
+            if (c == 'm') {
+                if (param == 0) {
+                    g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+                }
+                else if ((param >= 30 && param <= 37) || (param >= 90 && param <= 97)) {
+                    g_tty_color = vga_entry_color_fg(ansi_to_vga(param));
+                }
+                else if ((param >= 40 && param <= 47) || (param >= 100 && param <= 107)) {
+                    g_tty_color = vga_entry_color_bg(ansi_to_vga(param - 10));
+                }
+                ansi_state = ANSI_STATE_NORMAL;
+            }
+        }
+    }
 }
