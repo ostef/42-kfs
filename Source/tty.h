@@ -15,5 +15,4 @@ void	tty_putchar(char c);
 void	tty_clear(void);
 void	tty_scroll_down(void);
 
-
 #endif // TTY_H
