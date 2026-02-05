@@ -3,7 +3,7 @@
 
 #include "libkernel.h"
 
-typedef enum {
+typedef enum ansi_state_t {
     ANSI_STATE_NORMAL,
     ANSI_STATE_ESC,
     ANSI_STATE_CSI
