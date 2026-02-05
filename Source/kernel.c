@@ -2,6 +2,7 @@
 #include "tty.h"
 #include "com.h"
 #include "interrupts.h"
+#include "keyboard.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_printf("\x1b[31m");
@@ -26,11 +27,11 @@ void kernel_main(void) {
 	com1_initialize();
 	tty_initialize();
 	interrupts_initialize();
+	kb_initialize();
 
 	k_printf("Hello Kernel!\nkernel_main=%p\n", kernel_main);
 	k_printf("This is \x1b[31mred\x1b[0m text.\n");
 	k_printf("This is \x1b[41mred\x1b[0m text.\n");
 
-	int a = 0;
-	int b = 10 / a;
+	while (true);
 }

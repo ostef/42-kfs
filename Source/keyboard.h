@@ -1,0 +1,113 @@
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
+
+#include "libkernel.h"
+
+typedef uint8_t kb_scancode_t;
+enum {
+	KB_SCANCODE_INVALID = 0x00,
+	KB_SCANCODE_ESCAPE = 0x01,
+	KB_SCANCODE_1 = 0x02,
+	KB_SCANCODE_2 = 0x03,
+	KB_SCANCODE_3 = 0x04,
+	KB_SCANCODE_4 = 0x05,
+	KB_SCANCODE_5 = 0x06,
+	KB_SCANCODE_6 = 0x07,
+	KB_SCANCODE_7 = 0x08,
+	KB_SCANCODE_8 = 0x09,
+	KB_SCANCODE_9 = 0x0a,
+	KB_SCANCODE_0 = 0x0b,
+	KB_SCANCODE_MINUS = 0x0c,
+	KB_SCANCODE_EQUAL = 0x0d,
+	KB_SCANCODE_BACKSPACE = 0x0e,
+	KB_SCANCODE_TAB = 0x0f,
+	KB_SCANCODE_Q = 0x10,
+	KB_SCANCODE_W = 0x11,
+	KB_SCANCODE_E = 0x12,
+	KB_SCANCODE_R = 0x13,
+	KB_SCANCODE_T = 0x14,
+	KB_SCANCODE_Y = 0x15,
+	KB_SCANCODE_U = 0x16,
+	KB_SCANCODE_I = 0x17,
+	KB_SCANCODE_O = 0x18,
+	KB_SCANCODE_P = 0x19,
+	KB_SCANCODE_LBRACKET = 0x1a,
+	KB_SCANCODE_RBRACKET = 0x1b,
+	KB_SCANCODE_RETURN = 0x1c,
+	KB_SCANCODE_CTRL = 0x1d,
+	KB_SCANCODE_A = 0x1e,
+	KB_SCANCODE_S = 0x1f,
+	KB_SCANCODE_D = 0x20,
+	KB_SCANCODE_F = 0x21,
+	KB_SCANCODE_G = 0x22,
+	KB_SCANCODE_H = 0x23,
+	KB_SCANCODE_J = 0x24,
+	KB_SCANCODE_K = 0x25,
+	KB_SCANCODE_L = 0x26,
+	KB_SCANCODE_SEMICOLON = 0x27,
+	KB_SCANCODE_QUOTES = 0x28,
+	KB_SCANCODE_BACKTICK = 0x29,
+	KB_SCANCODE_LSHIFT = 0x2a,
+	KB_SCANCODE_BACKSLASH = 0x2b,
+	KB_SCANCODE_Z = 0x2c,
+	KB_SCANCODE_X = 0x2d,
+	KB_SCANCODE_C = 0x2e,
+	KB_SCANCODE_V = 0x2f,
+	KB_SCANCODE_B = 0x30,
+	KB_SCANCODE_N = 0x31,
+	KB_SCANCODE_M = 0x32,
+	KB_SCANCODE_COMMA = 0x33,
+	KB_SCANCODE_PERIOD = 0x34,
+	KB_SCANCODE_SLASH = 0x35,
+	KB_SCANCODE_RSHIFT = 0x36,
+	KB_SCANCODE_PRINT_SCREEN = 0x37,
+	KB_SCANCODE_ALT = 0x38,
+	KB_SCANCODE_SPACE = 0x39,
+	KB_SCANCODE_CAPS_LOCK = 0x3a,
+	KB_SCANCODE_F1 = 0x3b,
+	KB_SCANCODE_F2 = 0x3c,
+	KB_SCANCODE_F3 = 0x3d,
+	KB_SCANCODE_F4 = 0x3e,
+	KB_SCANCODE_F5 = 0x3f,
+	KB_SCANCODE_F6 = 0x40,
+	KB_SCANCODE_F7 = 0x41,
+	KB_SCANCODE_F8 = 0x42,
+	KB_SCANCODE_F9 = 0x43,
+	KB_SCANCODE_F10 = 0x44,
+	KB_SCANCODE_NUM_LOCK = 0x45,
+	KB_SCANCODE_SCROLL_LOCK = 0x46,
+	KB_SCANCODE_HOME = 0x47,
+	KB_SCANCODE_UP = 0x48,
+	KB_SCANCODE_PAGE_UP = 0x49,
+	KB_SCANCODE_LEFT = 0x4b,
+	KB_SCANCODE_RIGHT = 0x4d,
+	KB_SCANCODE_END = 0x4f,
+	KB_SCANCODE_DOWN = 0x50,
+	KB_SCANCODE_PAGE_DOWN = 0x51,
+	KB_SCANCODE_INSERT = 0x52,
+	KB_SCANCODE_DELETE = 0x53,
+
+	KB_SCANCODE_MAX,
+};
+
+typedef struct kb_key_state_t {
+	bool pressed;
+	int repeat_count;
+} kb_key_state_t;
+
+typedef uint8_t kb_mod_state_t;
+enum {
+	KB_MOD_NONE  = 0x00,
+	KB_MOD_CTRL  = 0x01,
+	KB_MOD_ALT   = 0x02,
+	KB_MOD_SHIFT = 0x04,
+};
+
+void kb_initialize();
+kb_key_state_t kb_get_key_state(kb_scancode_t scancode);
+bool kb_is_key_pressed(kb_scancode_t scancode);
+kb_mod_state_t kb_get_mod_state();
+const char *kb_get_key_name(kb_scancode_t scancode);
+const char *kb_get_mod_state_string(kb_mod_state_t mods);
+
+#endif // KEYBOARD_H

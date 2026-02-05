@@ -8,6 +8,7 @@ SOURCE_FILES=boot.asm \
 	com.c \
 	interrupts.c \
 	interrupt_handlers.asm \
+	keyboard.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
 	LibKernel/print.c
