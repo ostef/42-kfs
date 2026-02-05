@@ -27,17 +27,17 @@ char *k_strcpy(char *dst, const char *src);
 int k_strcmp(const char *a, const char *b);
 bool k_streq(const char *a, const char *b);
 
-typedef struct K_FormatInt {
+typedef struct k_format_int_t {
     int min_digits;
     char pad_char;
     unsigned int base_n;
     const char *base;
-} K_FormatInt;
+} k_format_int_t;
 
 k_size k_print_char(char c);
 k_size k_print_str(const char *str);
-k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt);
-k_size k_print_int_formatted(int64_t x, K_FormatInt fmt);
+k_size k_print_uint_formatted(uint64_t x, k_format_int_t fmt);
+k_size k_print_int_formatted(int64_t x, k_format_int_t fmt);
 k_size k_print_int(int x);
 k_size k_print_uint(unsigned int x);
 k_size k_print_hex(unsigned int x);

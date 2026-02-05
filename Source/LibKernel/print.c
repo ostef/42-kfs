@@ -10,7 +10,7 @@ k_size k_print_str(const char *str) {
     return tty_putstr(str);
 }
 
-k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
+k_size k_print_uint_formatted(uint64_t x, k_format_int_t fmt) {
     if (fmt.base_n < 2 || !fmt.base) {
         return 0;
     }
@@ -51,7 +51,7 @@ k_size k_print_uint_formatted(uint64_t x, K_FormatInt fmt) {
     return result;
 }
 
-k_size k_print_int_formatted(int64_t x, K_FormatInt fmt) {
+k_size k_print_int_formatted(int64_t x, k_format_int_t fmt) {
     k_size result = 0;
 
     if (x < 0) {
@@ -65,7 +65,7 @@ k_size k_print_int_formatted(int64_t x, K_FormatInt fmt) {
 }
 
 k_size k_print_int(int x) {
-    return k_print_int_formatted(x, (K_FormatInt){
+    return k_print_int_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
             .base_n=10,
@@ -74,7 +74,7 @@ k_size k_print_int(int x) {
 }
 
 k_size k_print_uint(unsigned int x) {
-    return k_print_uint_formatted(x, (K_FormatInt){
+    return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
             .base_n=10,
@@ -83,7 +83,7 @@ k_size k_print_uint(unsigned int x) {
 }
 
 k_size k_print_hex(unsigned int x) {
-    return k_print_uint_formatted(x, (K_FormatInt){
+    return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
             .base_n=16,
@@ -92,7 +92,7 @@ k_size k_print_hex(unsigned int x) {
 }
 
 k_size k_print_bin(unsigned int x) {
-    return k_print_uint_formatted(x, (K_FormatInt){
+    return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
             .base_n=2,
@@ -102,7 +102,7 @@ k_size k_print_bin(unsigned int x) {
 
 k_size k_print_ptr(const void *ptr) {
     k_size result= k_print_str("0x");
-    result += k_print_uint_formatted((uintptr_t)ptr, (K_FormatInt){
+    result += k_print_uint_formatted((uintptr_t)ptr, (k_format_int_t){
             .min_digits=sizeof(uintptr_t) * 2,
             .pad_char='0',
             .base_n=16,
