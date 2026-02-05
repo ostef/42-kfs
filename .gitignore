@@ -5,3 +5,4 @@
 *.iso
 .build
 /System/boot/pantheon
+/test.c
