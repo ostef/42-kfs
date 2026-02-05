@@ -113,6 +113,7 @@ enum {
 
 typedef struct kb_event_t {
 	kb_event_type_t type;
+	int repeat_count;
 	char ascii_value;
 	kb_scancode_t scancode;
 } kb_event_t;

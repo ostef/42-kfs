@@ -48,6 +48,7 @@ static void handle_keyboard_irq(isr_registers_t registers) {
         event.type = KB_EVENT_RELEASE;
     }
 
+    event.repeat_count = state->repeat_count;
     event.scancode = scancode;
     push_event(event);
 
