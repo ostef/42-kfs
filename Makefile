@@ -4,6 +4,9 @@ TARGET_ARCH=i686-elf
 SOURCE_FILES=boot.asm \
 	kernel.c \
 	tty.c \
+	ioport.c \
+	interrupts.c \
+	interrupt_handlers.asm \
 	LibKernel/memory.c \
 	LibKernel/string.c \
 	LibKernel/print.c
@@ -29,6 +32,9 @@ LIBS=gcc
 LINK_FLAGS=-ffreestanding -nostdlib
 
 all: $(TARGET_ISO)
+
+run: $(TARGET_ISO)
+	qemu-system-i386 -cdrom $(TARGET_ISO)
 
 $(TARGET_ISO): $(TARGET)
 	cp $(TARGET) $(SYSTEM_DIR)/boot/pantheon

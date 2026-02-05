@@ -18,6 +18,19 @@ typedef uint64_t k_usize_t;
 typedef int8_t k_sbyte_t;
 typedef uint8_t k_byte_t;
 
+#define KERNEL_CODE_SEGMENT 0x08
+#define KERNEL_DATA_SEGMENT 0x10
+
+#define LOW_8BITS(value) (uint8_t)((value) & 0xff)
+#define HIGH_8BITS(value) (uint8_t)(((value) >> 8) & 0xff)
+
+#define LOW_16BITS(value) (uint16_t)((value) & 0xffff)
+#define HIGH_16BITS(value) (uint16_t)(((value) >> 16) & 0xffff)
+
+#define k_array_count(arr) (sizeof(arr) / sizeof(*(arr)))
+
+#define k_pseudo_breakpoint() asm volatile("1: jmp 1b")
+
 void *k_memset(void *dst, k_byte_t value, k_size_t length);
 void *k_memcpy(void *dst, const void *src, k_size_t length);
 int k_memcmp(const void *a, const void *b, k_size_t length);
