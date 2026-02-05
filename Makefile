@@ -34,7 +34,7 @@ LINK_FLAGS=-ffreestanding -nostdlib
 all: $(TARGET_ISO)
 
 run: $(TARGET_ISO)
-	qemu-system-i386 -cdrom $(TARGET_ISO)
+	qemu-system-i386 -cdrom $(TARGET_ISO) -serial stdio -no-reboot -d cpu_reset
 
 $(TARGET_ISO): $(TARGET)
 	cp $(TARGET) $(SYSTEM_DIR)/boot/pantheon
