@@ -28,10 +28,10 @@ int k_strcmp(const char *a, const char *b);
 bool k_streq(const char *a, const char *b);
 
 typedef struct k_format_int_t {
-    int min_digits;
-    char pad_char;
-    unsigned int base_n;
-    const char *base;
+	int min_digits;
+	char pad_char;
+	unsigned int base_n;
+	const char *base;
 } k_format_int_t;
 
 k_size_t k_print_char(char c);
