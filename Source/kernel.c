@@ -27,10 +27,10 @@ void kernel_main(void) {
 	tty_initialize();
 	interrupts_initialize();
 
-	int a = 0;
-	int b = 10 / a;
-
 	k_printf("Hello Kernel!\nkernel_main=%p\n", kernel_main);
 	k_printf("This is \x1b[31mred\x1b[0m text.\n");
 	k_printf("This is \x1b[41mred\x1b[0m text.\n");
+
+	int a = 0;
+	int b = 10 / a;
 }

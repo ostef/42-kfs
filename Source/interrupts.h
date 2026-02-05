@@ -3,9 +3,16 @@
 
 #include "libkernel.h"
 
+// Vocabulary dump:
+// IDT: Interrupt Descriptor Table
+// IDT Gate: entry in the IDT
+// IDT Register: data describing the IDT
+// ISR: Interrupt Service Routine (i.e. CPU raised interrupts)
+// IRQ: Interrupt ReQuest (i.e. hardware raised interrupts, handled by the PICs)
+// PIC: Programmable Interrupt Controller
+
 void interrupts_initialize();
 
-typedef uint8_t idt_gate_type_t;
 enum {
 	IDT_GATE_TASK = 0x5,
 	IDT_GATE_16BIT_INTERRUPT = 0x6,
