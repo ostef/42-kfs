@@ -17,7 +17,7 @@ enum {
 	PIC_CMD_INITIALIZE = 0x10,
 	PIC_CMD_USE_ICW4 = 0x01, // ICW = Initialization Command Word
 	PIC_CMD_END_OF_INTERRUPT = 0x20,
-	PIC_CMD_READ_IRQ_REGISTER = 0x0a,
+	PIC_CMD_READ_INTERRUPT_REQUEST_REGISTER = 0x0a,
 	PIC_CMD_READ_IN_SERVICE_REGISTER = 0x0b,
 };
 
@@ -185,8 +185,8 @@ void isr_register_handler(uint8_t index, isr_handler_t handler) {
 // https://wiki.osdev.org/8259_PIC
 static
 uint16_t get_pic_irq_register() {
-	ioport_write_byte(PIC1_CMD, PIC_CMD_READ_IRQ_REGISTER);
-	ioport_write_byte(PIC2_CMD, PIC_CMD_READ_IRQ_REGISTER);
+	ioport_write_byte(PIC1_CMD, PIC_CMD_READ_INTERRUPT_REQUEST_REGISTER);
+	ioport_write_byte(PIC2_CMD, PIC_CMD_READ_INTERRUPT_REQUEST_REGISTER);
 	uint8_t pic1 = ioport_read_byte(PIC1_CMD);
 	uint8_t pic2 = ioport_read_byte(PIC2_CMD);
 
