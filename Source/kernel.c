@@ -7,20 +7,20 @@
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_printf("\x1b[31m");
 
-    if (panic) {
-        k_printf("Panic in ");
-    } else {
-        k_printf("Assertion failed in ");
-    }
+	if (panic) {
+		k_printf("Panic in ");
+	} else {
+		k_printf("Assertion failed in ");
+	}
 
-    k_printf("%s, %s:%d", func, filename, line);
-    if (expr && expr[0]) {
-        k_printf(" (%s)", expr);
-    }
-    k_printf(":\x1b[0m\n");
-    k_printf("    %s\n", msg);
+	k_printf("%s, %s:%d", func, filename, line);
+	if (expr && expr[0]) {
+		k_printf(" (%s)", expr);
+	}
+	k_printf(":\x1b[0m\n");
+	k_printf("    %s\n", msg);
 
-    k_pseudo_breakpoint();
+	k_pseudo_breakpoint();
 }
 
 void kernel_main(void) {
@@ -33,5 +33,12 @@ void kernel_main(void) {
 	k_printf("This is \x1b[31mred\x1b[0m text.\n");
 	k_printf("This is \x1b[41mred\x1b[0m text.\n");
 
-	while (true);
+	while (true) {
+		kb_event_t kb;
+		if (kb_poll_event(&kb)) {
+			if (kb.type == KB_EVENT_TEXT_INPUT) {
+				k_printf("%c", kb.ascii_value);
+			}
+		}
+	}
 }

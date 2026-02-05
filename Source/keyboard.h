@@ -103,11 +103,27 @@ enum {
 	KB_MOD_SHIFT = 0x04,
 };
 
+typedef uint8_t kb_event_type_t;
+enum {
+	KB_EVENT_PRESS,
+	KB_EVENT_REPEAT,
+	KB_EVENT_RELEASE,
+	KB_EVENT_TEXT_INPUT,
+};
+
+typedef struct kb_event_t {
+	kb_event_type_t type;
+	char ascii_value;
+	kb_scancode_t scancode;
+} kb_event_t;
+
 void kb_initialize();
 kb_key_state_t kb_get_key_state(kb_scancode_t scancode);
 bool kb_is_key_pressed(kb_scancode_t scancode);
 kb_mod_state_t kb_get_mod_state();
 const char *kb_get_key_name(kb_scancode_t scancode);
 const char *kb_get_mod_state_string(kb_mod_state_t mods);
+bool kb_poll_event(kb_event_t *event);
+char kb_translate_key_press(kb_scancode_t scancode, kb_mod_state_t mods);
 
 #endif // KEYBOARD_H
