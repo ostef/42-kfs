@@ -1,14 +1,16 @@
 #include "libkernel.h"
 #include "tty.h"
+#include "com.h"
 
 k_size_t k_print_char(char c) {
 	tty_putchar(c);
+	com1_write_byte(c);
 	return 1;
 }
 
 k_size_t k_print_str(const char *str) {
     k_size_t i;
-    
+
     i = 0;
     while (str[i]) {
         k_print_char(str[i++]);

@@ -5,6 +5,7 @@ SOURCE_FILES=boot.asm \
 	kernel.c \
 	tty.c \
 	ioport.c \
+	com.c \
 	interrupts.c \
 	interrupt_handlers.asm \
 	LibKernel/memory.c \

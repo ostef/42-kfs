@@ -1,5 +1,6 @@
 #include "libkernel.h"
 #include "tty.h"
+#include "com.h"
 #include "interrupts.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
@@ -23,6 +24,7 @@ void k_assertion_failure(const char *expr, const char *msg, const char *func, co
 
 void kernel_main(void) {
 	tty_initialize();
+	com1_initialize();
 	interrupts_initialize();
 
 	int a = 0;
