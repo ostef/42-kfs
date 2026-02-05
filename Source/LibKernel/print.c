@@ -1,23 +1,23 @@
 #include "libkernel.h"
 #include "tty.h"
 
-k_size k_print_char(char c) {
+k_size_t k_print_char(char c) {
     tty_putchar(c);
     return 1;
 }
 
-k_size k_print_str(const char *str) {
+k_size_t k_print_str(const char *str) {
     return tty_putstr(str);
 }
 
-k_size k_print_uint_formatted(uint64_t x, k_format_int_t fmt) {
+k_size_t k_print_uint_formatted(uint64_t x, k_format_int_t fmt) {
     if (fmt.base_n < 2 || !fmt.base) {
         return 0;
     }
 
     char buff[64]; // Max base 2 number is assumed to be 64 digits (64-bit ints)
 
-    k_size length = 0;
+    k_size_t length = 0;
     uint64_t x2 = x;
     while (length == 0 || x2 > 0) {
         length += 1;
@@ -28,31 +28,31 @@ k_size k_print_uint_formatted(uint64_t x, k_format_int_t fmt) {
     if (length < 0) {
         length = 0;
     }
-    if (length > (k_size)sizeof(buff)) {
+    if (length > (k_size_t)sizeof(buff)) {
         length = sizeof(buff);
     }
 
-    for (k_size i = 0; i < length; i += 1) {
+    for (k_size_t i = 0; i < length; i += 1) {
         uint64_t digit = x % fmt.base_n;
         x /= fmt.base_n;
 
         buff[length - i - 1] = fmt.base[digit];
     }
 
-    k_size result = 0;
-    for (k_size i = 0; i < fmt.min_digits - length; i += 1) {
+    k_size_t result = 0;
+    for (k_size_t i = 0; i < fmt.min_digits - length; i += 1) {
         result += k_print_char(fmt.pad_char);
     }
 
-    for (k_size i = 0; i < length; i += 1) {
+    for (k_size_t i = 0; i < length; i += 1) {
         result += k_print_char(buff[i]);
     }
 
     return result;
 }
 
-k_size k_print_int_formatted(int64_t x, k_format_int_t fmt) {
-    k_size result = 0;
+k_size_t k_print_int_formatted(int64_t x, k_format_int_t fmt) {
+    k_size_t result = 0;
 
     if (x < 0) {
         result += k_print_char('-');
@@ -64,7 +64,7 @@ k_size k_print_int_formatted(int64_t x, k_format_int_t fmt) {
     return result;
 }
 
-k_size k_print_int(int x) {
+k_size_t k_print_int(int x) {
     return k_print_int_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
@@ -73,7 +73,7 @@ k_size k_print_int(int x) {
         });
 }
 
-k_size k_print_uint(unsigned int x) {
+k_size_t k_print_uint(unsigned int x) {
     return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
@@ -82,7 +82,7 @@ k_size k_print_uint(unsigned int x) {
         });
 }
 
-k_size k_print_hex(unsigned int x) {
+k_size_t k_print_hex(unsigned int x) {
     return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
@@ -91,7 +91,7 @@ k_size k_print_hex(unsigned int x) {
         });
 }
 
-k_size k_print_bin(unsigned int x) {
+k_size_t k_print_bin(unsigned int x) {
     return k_print_uint_formatted(x, (k_format_int_t){
             .min_digits=0,
             .pad_char=' ',
@@ -100,8 +100,8 @@ k_size k_print_bin(unsigned int x) {
         });
 }
 
-k_size k_print_ptr(const void *ptr) {
-    k_size result= k_print_str("0x");
+k_size_t k_print_ptr(const void *ptr) {
+    k_size_t result= k_print_str("0x");
     result += k_print_uint_formatted((uintptr_t)ptr, (k_format_int_t){
             .min_digits=sizeof(uintptr_t) * 2,
             .pad_char='0',
@@ -112,9 +112,9 @@ k_size k_print_ptr(const void *ptr) {
     return result;
 }
 
-k_size k_vprintf(const char *fmt, va_list va) {
-    k_size result = 0;
-    k_size i = 0;
+k_size_t k_vprintf(const char *fmt, va_list va) {
+    k_size_t result = 0;
+    k_size_t i = 0;
     while (fmt[i]) {
         if (fmt[i] == '%') {
             i += 1;
@@ -169,11 +169,11 @@ k_size k_vprintf(const char *fmt, va_list va) {
     return result;
 }
 
-k_size k_printf(const char *fmt, ...) {
+k_size_t k_printf(const char *fmt, ...) {
     va_list va;
 
     va_start(va, fmt);
-    k_size result = k_vprintf(fmt, va);
+    k_size_t result = k_vprintf(fmt, va);
     va_end(va);
 
     return result;

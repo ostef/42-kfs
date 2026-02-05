@@ -94,9 +94,9 @@ void tty_putchar(char c) {
     }
 }
 
-k_size tty_putstr(const char* str)
+k_size_t tty_putstr(const char* str)
 {
-	k_size			i;
+	k_size_t			i;
     char			c;
     ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
     int				param;
