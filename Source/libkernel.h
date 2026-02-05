@@ -27,9 +27,26 @@ typedef uint8_t k_byte_t;
 #define LOW_16BITS(value) (uint16_t)((value) & 0xffff)
 #define HIGH_16BITS(value) (uint16_t)(((value) >> 16) & 0xffff)
 
+// Helper macros
+#define K_STRINGIFY(x) K_STRINGIFY2(x)
+#define K_STRINGIFY2(x) #x
+
 #define k_array_count(arr) (sizeof(arr) / sizeof(*(arr)))
 
 #define k_pseudo_breakpoint() asm volatile("1: jmp 1b")
+
+// Assertions and debugging
+#define k_assert(expr, msg) do { if (!(expr)) { k_assertion_failure(K_STRINGIFY(expr), msg, __func__, __FILE__, __LINE__, false); } } while(0)
+#define k_panic(msg) do { k_assertion_failure("", msg, __func__, __FILE__, __LINE__, true); } while(0)
+
+void k_assertion_failure(
+    const char *expr,
+    const char *msg,
+    const char *func,
+    const char *filename,
+    int line,
+    bool panic
+);
 
 void *k_memset(void *dst, k_byte_t value, k_size_t length);
 void *k_memcpy(void *dst, const void *src, k_size_t length);
