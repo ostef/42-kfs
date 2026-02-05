@@ -7,7 +7,8 @@
 #define VGA_HEIGHT 25
 #define VGA_MEMORY ((uint16_t*) 0xB8000)
 
-enum vga_color {
+typedef uint8_t vga_color_t;
+enum {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
 	VGA_COLOR_GREEN = 2,
@@ -28,15 +29,15 @@ enum vga_color {
 
 extern uint8_t g_tty_color;
 
-static inline uint8_t vga_entry_color(enum vga_color fg, enum vga_color bg) {
+static inline uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg) {
 	return fg | bg << 4;
 }
 
-static inline uint8_t vga_entry_color_fg(enum vga_color fg) {
+static inline uint8_t vga_entry_color_fg(vga_color_t fg) {
 	return vga_entry_color(fg, g_tty_color >> 4);
 }
 
-static inline uint8_t vga_entry_color_bg(enum vga_color bg) {
+static inline uint8_t vga_entry_color_bg(vga_color_t bg) {
 	return vga_entry_color(g_tty_color & 0x0F, bg);
 }
 

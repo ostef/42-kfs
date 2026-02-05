@@ -12,78 +12,78 @@ ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
 int				param;
 
 uint8_t ansi_to_vga(uint8_t ansi) {
-    switch (ansi) {
-        case 30: return VGA_COLOR_BLACK;
-        case 31: return VGA_COLOR_RED;
-        case 32: return VGA_COLOR_GREEN;
-        case 33: return VGA_COLOR_BROWN;
-        case 34: return VGA_COLOR_BLUE;
-        case 35: return VGA_COLOR_MAGENTA;
-        case 36: return VGA_COLOR_CYAN;
-        case 37: return VGA_COLOR_LIGHT_GREY;
-        case 90: return VGA_COLOR_DARK_GREY;
-        case 91: return VGA_COLOR_LIGHT_RED;
-        case 92: return VGA_COLOR_LIGHT_GREEN;
-        case 93: return VGA_COLOR_LIGHT_BROWN;
-        case 94: return VGA_COLOR_LIGHT_BLUE;
-        case 95: return VGA_COLOR_LIGHT_MAGENTA;
-        case 96: return VGA_COLOR_LIGHT_CYAN;
-        case 97: return VGA_COLOR_WHITE;
-        default: return VGA_COLOR_LIGHT_GREY;
-    }
+	switch (ansi) {
+		case 30: return VGA_COLOR_BLACK;
+		case 31: return VGA_COLOR_RED;
+		case 32: return VGA_COLOR_GREEN;
+		case 33: return VGA_COLOR_BROWN;
+		case 34: return VGA_COLOR_BLUE;
+		case 35: return VGA_COLOR_MAGENTA;
+		case 36: return VGA_COLOR_CYAN;
+		case 37: return VGA_COLOR_LIGHT_GREY;
+		case 90: return VGA_COLOR_DARK_GREY;
+		case 91: return VGA_COLOR_LIGHT_RED;
+		case 92: return VGA_COLOR_LIGHT_GREEN;
+		case 93: return VGA_COLOR_LIGHT_BROWN;
+		case 94: return VGA_COLOR_LIGHT_BLUE;
+		case 95: return VGA_COLOR_LIGHT_MAGENTA;
+		case 96: return VGA_COLOR_LIGHT_CYAN;
+		case 97: return VGA_COLOR_WHITE;
+		default: return VGA_COLOR_LIGHT_GREY;
+	}
 }
 
 void tty_initialize(void)
 {
-    g_tty_row = 0;
-    g_tty_column = 0;
-    g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+	g_tty_row = 0;
+	g_tty_column = 0;
+	g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 
-    for (size_t y = 0; y < VGA_HEIGHT; y++) {
-        for (size_t x = 0; x < VGA_WIDTH; x++) {
-            const size_t index = y * VGA_WIDTH + x;
-            g_tty_buffer[index] = vga_entry(0, g_tty_color);
-        }
-    }
+	for (size_t y = 0; y < VGA_HEIGHT; y++) {
+		for (size_t x = 0; x < VGA_WIDTH; x++) {
+			const size_t index = y * VGA_WIDTH + x;
+			g_tty_buffer[index] = vga_entry(0, g_tty_color);
+		}
+	}
 }
 
 void tty_setcolor(uint8_t color)
 {
-    g_tty_color = color;
+	g_tty_color = color;
 }
 
 void tty_clear(void)
 {
-    for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-        g_tty_buffer[i] = vga_entry(0, g_tty_color);
-    }
-    g_tty_row = 0;
-    g_tty_column = 0;
+	for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
+		g_tty_buffer[i] = vga_entry(0, g_tty_color);
+	}
+	g_tty_row = 0;
+	g_tty_column = 0;
 }
 
 void tty_scroll_down(void)
 {
-    for(size_t i = 0; i < (VGA_WIDTH * (VGA_HEIGHT - 1)); i++) {
-        g_tty_buffer[i] = g_tty_buffer[i + VGA_WIDTH];
-    }
+	for(size_t i = 0; i < (VGA_WIDTH * (VGA_HEIGHT - 1)); i++) {
+		g_tty_buffer[i] = g_tty_buffer[i + VGA_WIDTH];
+	}
 }
 
 void tty_putentryat(char c, uint8_t color, size_t x, size_t y)
 {
-    const size_t index = y * VGA_WIDTH + x;
-    g_tty_buffer[index] = vga_entry(c, color);
+	const size_t index = y * VGA_WIDTH + x;
+	g_tty_buffer[index] = vga_entry(c, color);
 }
 
 void tty_putchar(char c) {
-    if (c == '\n') {
-        if (++g_tty_row == VGA_HEIGHT) {
-            tty_scroll_down();
-            g_tty_row = VGA_HEIGHT - 1;
-        }
-        g_tty_column = 0;
+	if (c == '\n') {
+		if (++g_tty_row == VGA_HEIGHT) {
+			tty_scroll_down();
+			g_tty_row = VGA_HEIGHT - 1;
+		}
+		g_tty_column = 0;
 
-        return ;
-    }
+		return ;
+	}
 
     if ( ansi_state == ANSI_STATE_NORMAL) {
         if (c == '\x1b')
