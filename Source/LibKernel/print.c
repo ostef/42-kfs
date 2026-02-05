@@ -6,8 +6,8 @@ k_size_t k_print_char(char c) {
 	return 1;
 }
 
-k_size k_print_str(const char *str) {
-    k_size i;
+k_size_t k_print_str(const char *str) {
+    k_size_t i;
     
     i = 0;
     while (str[i]) {
