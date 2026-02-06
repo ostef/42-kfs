@@ -33,13 +33,22 @@ void com1_initialize() {
 	k_printf("Intialized COM1 serial port for debugging\n");
 }
 
+#define MAX_COM1_WAIT 10
+
 uint8_t com1_read_byte() {
 	if (!g_com1_initialized) {
 		return 0;
 	}
 
 	// Wait until we can read
-	while ((ioport_read_byte(COM1_PORT + 5) & 0x01) == 0);
+	int i = 0;
+	while (i < MAX_COM1_WAIT && (ioport_read_byte(COM1_PORT + 5) & 0x01) == 0) {
+		i += 1;
+	}
+
+	if (i == MAX_COM1_WAIT) {
+		return 0;
+	}
 
 	return ioport_read_byte(COM1_PORT);
 }
@@ -50,7 +59,14 @@ void com1_write_byte(uint8_t byte) {
 	}
 
 	// Wait until transit is empty
-	while ((ioport_read_byte(COM1_PORT + 5) & 0x20) == 0);
+	int i = 0;
+	while ((ioport_read_byte(COM1_PORT + 5) & 0x20) == 0) {
+		i += 1;
+	}
+
+	if (i == MAX_COM1_WAIT) {
+		return;
+	}
 
 	ioport_write_byte(COM1_PORT, byte);
 }
