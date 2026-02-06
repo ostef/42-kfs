@@ -7,6 +7,7 @@
 typedef struct tty_t {
 	k_size_t row;
 	k_size_t column;
+	bool cursor_visible;
 	uint8_t color;
 	ansi_state_t ansi_state;
 	int ansi_param;
@@ -27,6 +28,7 @@ static tty_t *get_tty(tty_id_t id) {
 void tty_initialize(void) {
 	for (int i = 0; i < MAX_TTYS; i += 1) {
 		g_ttys[i].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);;
+		g_ttys[i].cursor_visible = true;
 		tty_clear(i);
 	}
 
@@ -52,6 +54,10 @@ void tty_clear(tty_id_t id) {
 
 	tty->column = 0;
 	tty->row = 0;
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
 }
 
 void tty_scroll_up(tty_id_t id) {
@@ -81,6 +87,10 @@ void tty_scroll_up(tty_id_t id) {
 	}
 
 	tty->row -= 1;
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
 }
 
 void tty_set_active(tty_id_t id) {
@@ -97,6 +107,14 @@ void tty_set_active(tty_id_t id) {
 			vga_set_entry_at(col, row, entry);
 		}
 	}
+
+	if (tty->cursor_visible) {
+		vga_show_cursor();
+	} else {
+		vga_hide_cursor();
+	}
+
+	vga_set_cursor_position(tty->column, tty->row);
 }
 
 tty_id_t tty_get_active(void) {
@@ -145,6 +163,10 @@ void tty_putchar(tty_id_t id, char c) {
 			}
 
 			if (c == '\n') {
+				if (g_active_tty == id) {
+					vga_set_cursor_position(tty->column, tty->row);
+				}
+
 				return;
 			}
 
@@ -157,6 +179,10 @@ void tty_putchar(tty_id_t id, char c) {
 			}
 
 			tty->column += 1;
+
+			if (g_active_tty == id) {
+				vga_set_cursor_position(tty->column, tty->row);
+			}
 		}
 	} else if (tty->ansi_state == ANSI_STATE_ESC) {
 		if (c == '[') {
@@ -201,4 +227,71 @@ uint8_t tty_get_color(tty_id_t id) {
 	}
 
 	return tty->color;
+}
+
+void tty_show_cursor(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	tty->cursor_visible = true;
+
+	if (g_active_tty == id) {
+		vga_show_cursor();
+	}
+}
+
+void tty_hide_cursor(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	tty->cursor_visible = false;
+
+	if (g_active_tty == id) {
+		vga_hide_cursor();
+	}
+}
+
+void tty_set_cursor_position(tty_id_t id, int col, int row) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (col < 0) {
+		col = 0;
+	}
+	if (col >= VGA_WIDTH) {
+		col = VGA_WIDTH - 1;
+	}
+	if (row < 0) {
+		row = 0;
+	}
+	if (row >= VGA_HEIGHT) {
+		row = VGA_HEIGHT - 1;
+	}
+
+	tty->column = col;
+	tty->row = row;
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(col, row);
+	}
+}
+
+void tty_get_cursor_position(tty_id_t id, int *col, int *row) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (col) {
+		*col = tty->column;
+	}
+	if (row) {
+		*row = tty->row;
+	}
 }

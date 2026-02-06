@@ -24,5 +24,9 @@ tty_id_t tty_get_active(void);
 void tty_putchar(tty_id_t id, char c);
 void tty_set_color(tty_id_t id, uint8_t color);
 uint8_t tty_get_color(tty_id_t id);
+void tty_show_cursor(tty_id_t id);
+void tty_hide_cursor(tty_id_t id);
+void tty_set_cursor_position(tty_id_t id, int col, int row);
+void tty_get_cursor_position(tty_id_t id, int *col, int *row);
 
 #endif // TTY_H

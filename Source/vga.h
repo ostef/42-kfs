@@ -1,7 +1,7 @@
 #ifndef VGA_H
 #define VGA_H
 
-#include <stdint.h>
+#include "libkernel.h"
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
@@ -32,5 +32,13 @@ uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg);
 uint16_t vga_entry(char c, uint8_t color);
 uint16_t vga_get_entry_at(int col, int row);
 void vga_set_entry_at(int col, int row, uint16_t entry);
+
+void vga_hide_cursor();
+void vga_show_cursor();
+void vga_set_cursor_extents(uint8_t start, uint8_t end);
+int32_t vga_get_cursor_offset();
+void vga_get_cursor_position(int *col, int *row);
+void vga_set_cursor_offset(int32_t offset);
+void vga_set_cursor_position(int col, int row);
 
 #endif // VGA_H
