@@ -4,15 +4,103 @@
 #include "vga.h"
 #include "tty.h"
 
-static bool g_tty_initialized;
-static size_t   g_tty_row;
-static size_t   g_tty_column;
-uint8_t         g_tty_color;
-uint16_t*       g_tty_buffer = (uint16_t*)VGA_MEMORY;
-ansi_state_t	ansi_state = ANSI_STATE_NORMAL;
-int				param;
+typedef struct tty_t {
+	k_size_t row;
+	k_size_t column;
+	uint8_t color;
+	ansi_state_t ansi_state;
+	int ansi_param;
+	uint16_t screen_buff[VGA_WIDTH * VGA_HEIGHT];
+} tty_t;
 
-uint8_t ansi_to_vga(uint8_t ansi) {
+static tty_t g_ttys[MAX_TTYS];
+static tty_id_t g_active_tty;
+
+static tty_t *get_tty(tty_id_t id) {
+	if (id < 0 || id >= MAX_TTYS) {
+		return NULL;
+	}
+
+	return &g_ttys[id];
+}
+
+void tty_initialize(void) {
+	g_ttys[0].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);;
+	tty_clear(0);
+	tty_set_active(0);
+}
+
+void tty_clear(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	for (int row = 0; row < VGA_HEIGHT; row += 1) {
+		for (int col = 0; col < VGA_WIDTH; col += 1) {
+			uint16_t entry = vga_entry(0, tty->color);
+			tty->screen_buff[row * VGA_WIDTH + col] = entry;
+
+			if (g_active_tty == id) {
+				vga_set_entry_at(col, row, entry);
+			}
+		}
+	}
+
+	tty->column = 0;
+	tty->row = 0;
+}
+
+void tty_scroll_up(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	for (int row = 0; row < VGA_HEIGHT - 1; row += 1) {
+		for (int col = 0; col < VGA_WIDTH; col += 1) {
+			uint16_t entry = tty->screen_buff[(row + 1) * VGA_WIDTH + col];
+			tty->screen_buff[row * VGA_WIDTH + col] = entry;
+
+			if (g_active_tty == id) {
+				vga_set_entry_at(col, row, entry);
+			}
+		}
+	}
+
+	for (int col = 0; col < VGA_WIDTH; col += 1) {
+		uint16_t entry = vga_entry(0, tty->color);
+		tty->screen_buff[(VGA_HEIGHT - 1) * VGA_WIDTH + col] = entry;
+
+		if (g_active_tty == id)  {
+			vga_set_entry_at(col, VGA_HEIGHT - 1, entry);
+		}
+	}
+
+	tty->row -= 1;
+}
+
+void tty_set_active(tty_id_t id) {
+	if (id < 0 || id >= MAX_TTYS) {
+		return;
+	}
+
+	tty_t *tty = &g_ttys[id];
+	g_active_tty = id;
+
+	for (int row = 0; row < VGA_HEIGHT; row += 1) {
+		for (int col = 0; col < VGA_WIDTH; col += 1) {
+			uint16_t entry = tty->screen_buff[row * VGA_WIDTH + col];
+			vga_set_entry_at(col, row, entry);
+		}
+	}
+}
+
+tty_id_t tty_get_active(void) {
+	return g_active_tty;
+}
+
+static uint8_t ansi_to_vga(uint8_t ansi) {
 	switch (ansi) {
 		case 30: return VGA_COLOR_BLACK;
 		case 31: return VGA_COLOR_RED;
@@ -34,121 +122,80 @@ uint8_t ansi_to_vga(uint8_t ansi) {
 	}
 }
 
-void tty_initialize(void)
-{
-	g_tty_row = 0;
-	g_tty_column = 0;
-	g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+void tty_putchar(tty_id_t id, char c) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
 
-	for (size_t y = 0; y < VGA_HEIGHT; y++) {
-		for (size_t x = 0; x < VGA_WIDTH; x++) {
-			const size_t index = y * VGA_WIDTH + x;
-			g_tty_buffer[index] = vga_entry(0, g_tty_color);
+	if (tty->ansi_state == ANSI_STATE_NORMAL) {
+		if (c == '\x1b') {
+			tty->ansi_state = ANSI_STATE_ESC;
+		} else {
+			if (c == '\n' || tty->column == VGA_WIDTH) {
+				tty->column = 0;
+				tty->row += 1;
+			}
+
+			if (tty->row >= VGA_HEIGHT) {
+				tty_scroll_up(id);
+			}
+
+			if (c == '\n') {
+				return;
+			}
+
+			uint16_t entry = vga_entry(c, tty->color);
+
+			tty->screen_buff[tty->row * VGA_WIDTH + tty->column] = entry;
+
+			if (g_active_tty == id) {
+				vga_set_entry_at(tty->column, tty->row, entry);
+			}
+
+			tty->column += 1;
+		}
+	} else if (tty->ansi_state == ANSI_STATE_ESC) {
+		if (c == '[') {
+			tty->ansi_state = ANSI_STATE_CSI;
+			tty->ansi_param = 0;
+		} else {
+			tty->ansi_state = ANSI_STATE_NORMAL;
+		}
+	} else if (tty->ansi_state == ANSI_STATE_CSI) {
+		if (c >= '0' && c <= '9') {
+			tty->ansi_param = tty->ansi_param * 10 + (c - '0');
+		} else {
+			// Only handle the 'm' command
+			if (c == 'm') {
+				if (tty->ansi_param == 0) {
+					tty->color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+				} else if ((tty->ansi_param >= 30 && tty->ansi_param <= 37) || (tty->ansi_param >= 90 && tty->ansi_param <= 97)) {
+					tty->color = vga_entry_color(vga_color_get_fg(tty->color), ansi_to_vga(tty->ansi_param));
+				} else if ((tty->ansi_param >= 40 && tty->ansi_param <= 47) || (tty->ansi_param >= 100 && tty->ansi_param <= 107)) {
+					tty->color = vga_entry_color(ansi_to_vga(tty->ansi_param - 10), vga_color_get_bg(tty->color));
+				}
+
+				tty->ansi_state = ANSI_STATE_NORMAL;
+			}
 		}
 	}
-
-	g_tty_initialized = true;
 }
 
-void tty_setcolor(uint8_t color)
-{
-	if (!g_tty_initialized) {
+void tty_set_color(tty_id_t id, uint8_t color) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
 		return;
 	}
 
-	g_tty_color = color;
+	tty->color = color;
 }
 
-void tty_clear(void)
-{
-	if (!g_tty_initialized) {
-		return;
+uint8_t tty_get_color(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return 0;
 	}
 
-	for (size_t i = 0; i < VGA_WIDTH * VGA_HEIGHT; i++) {
-		g_tty_buffer[i] = vga_entry(0, g_tty_color);
-	}
-	g_tty_row = 0;
-	g_tty_column = 0;
-}
-
-void tty_scroll_down(void)
-{
-	if (!g_tty_initialized) {
-		return;
-	}
-
-	for(size_t i = 0; i < (VGA_WIDTH * (VGA_HEIGHT - 1)); i++) {
-		g_tty_buffer[i] = g_tty_buffer[i + VGA_WIDTH];
-	}
-}
-
-void tty_putentryat(char c, uint8_t color, size_t x, size_t y)
-{
-	if (!g_tty_initialized) {
-		return;
-	}
-
-	const size_t index = y * VGA_WIDTH + x;
-	g_tty_buffer[index] = vga_entry(c, color);
-}
-
-void tty_putchar(char c) {
-	if (!g_tty_initialized) {
-		return;
-	}
-
-	if (c == '\n') {
-		if (++g_tty_row == VGA_HEIGHT) {
-			tty_scroll_down();
-			g_tty_row = VGA_HEIGHT - 1;
-		}
-		g_tty_column = 0;
-
-		return ;
-	}
-
-    if ( ansi_state == ANSI_STATE_NORMAL) {
-        if (c == '\x1b')
-            ansi_state = ANSI_STATE_ESC;
-        else {
-            tty_putentryat(c, g_tty_color, g_tty_column, g_tty_row);
-
-            if (++g_tty_column == VGA_WIDTH) {
-                g_tty_column = 0;
-
-                if (++g_tty_row == VGA_HEIGHT) {
-                    g_tty_row = 0;
-                }
-            }
-        }
-    }
-    else if (ansi_state == ANSI_STATE_ESC) {
-        if (c == '[') {
-            ansi_state = ANSI_STATE_CSI;
-            param = 0;
-        }
-        else
-            ansi_state = ANSI_STATE_NORMAL;
-    }
-    else if (ansi_state == ANSI_STATE_CSI) {
-        if (c >= '0' && c <= '9') {
-            param = param * 10 + (c - '0');
-        }
-        else {
-            // Only handle the 'm' command
-            if (c == 'm') {
-                if (param == 0) {
-                    g_tty_color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-                }
-                else if ((param >= 30 && param <= 37) || (param >= 90 && param <= 97)) {
-                    g_tty_color = vga_entry_color_fg(ansi_to_vga(param));
-                }
-                else if ((param >= 40 && param <= 47) || (param >= 100 && param <= 107)) {
-                    g_tty_color = vga_entry_color_bg(ansi_to_vga(param - 10));
-                }
-                ansi_state = ANSI_STATE_NORMAL;
-            }
-        }
-    }
+	return tty->color;
 }

@@ -3,7 +3,7 @@
 #include "com.h"
 
 k_size_t k_print_char(char c) {
-	tty_putchar(c);
+	tty_putchar(tty_get_active(), c);
 	com1_write_byte(c);
 	return 1;
 }

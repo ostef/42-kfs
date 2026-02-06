@@ -5,7 +5,6 @@
 
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
-#define VGA_MEMORY ((uint16_t*) 0xB8000)
 
 typedef uint8_t vga_color_t;
 enum {
@@ -27,22 +26,11 @@ enum {
 	VGA_COLOR_WHITE = 15,
 };
 
-extern uint8_t g_tty_color;
-
-static inline uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg) {
-	return fg | bg << 4;
-}
-
-static inline uint8_t vga_entry_color_fg(vga_color_t fg) {
-	return vga_entry_color(fg, g_tty_color >> 4);
-}
-
-static inline uint8_t vga_entry_color_bg(vga_color_t bg) {
-	return vga_entry_color(g_tty_color & 0x0F, bg);
-}
-
-static inline uint16_t vga_entry(unsigned char uc, uint8_t color) {
-	return (uint16_t) uc | (uint16_t) color << 8;
-}
+vga_color_t vga_color_get_fg(uint8_t c);
+vga_color_t vga_color_get_bg(uint8_t c);
+uint8_t vga_entry_color(vga_color_t fg, vga_color_t bg);
+uint16_t vga_entry(char c, uint8_t color);
+uint16_t vga_get_entry_at(int col, int row);
+void vga_set_entry_at(int col, int row, uint16_t entry);
 
 #endif // VGA_H

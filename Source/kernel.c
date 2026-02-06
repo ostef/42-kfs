@@ -46,6 +46,12 @@ void kernel_main(void) {
 				if (kb.scancode == KB_SCANCODE_RETURN) {
 					k_printf("\n");
 				}
+
+				if (kb_get_mod_state() == (KB_MOD_CTRL | KB_MOD_SHIFT)) {
+					if (kb.scancode >= KB_SCANCODE_1 && kb.scancode <= KB_SCANCODE_0) {
+						tty_set_active(kb.scancode - KB_SCANCODE_1);
+					}
+				}
 			} break;
 			}
 		}

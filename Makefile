@@ -3,10 +3,11 @@ TARGET=kernel.bin
 TARGET_ARCH=i686-elf
 SOURCE_FILES=boot.asm \
 	kernel.c \
-	tty.c \
-	ioport.c \
 	com.c \
+	ioport.c \
 	interrupts.c \
+	vga.c \
+	tty.c \
 	interrupt_handlers.asm \
 	keyboard.c \
 	LibKernel/memory.c \
