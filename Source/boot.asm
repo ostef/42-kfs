@@ -40,6 +40,34 @@ stack_top:
 ; doesn't make sense to return from this function as the bootloader is gone.
 ; Declare _start as a function symbol with the given symbol size.
 section .text
+
+	GDT_start:
+		null_descriptor:
+			dd 0
+			dd 0
+		code_descriptor:
+			dw 0xFFFF ; limit low
+			dw 0x0000 ; base low		16 bits +
+			db 0x00   ; base middle		8 bits
+			db 0x9A   ; 0x9A => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 1, conforming = 0, readable = 1, accessed (manage by cpu) = 0) => 0b10011010
+			db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
+			db 0x00   ; base high
+		data_descriptor:
+			dw 0xFFFF ; limit low
+			dw 0x0000 ; base low		16 bits +
+			db 0x00   ; base middle		8 bits
+			db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, conforming = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010010
+			db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
+			db 0x00   ; base high
+	GDT_end:
+
+	CODE_SEGMENT equ code_descriptor - GDT_start
+	DATA_SEGMENT equ data_descriptor - GDT_start
+
+	GDT_descriptor:
+		dw GDT_end - GDT_start - 1 ; limit (size of GDT)
+		dd GDT_start ; base (address of GDT)
+		
 global _start:function (_start.end - _start)
 _start:
 	; The bootloader has loaded us into 32-bit protected mode on a x86
@@ -63,9 +91,15 @@ _start:
 	; environment where crucial features are offline. Note that the
 	; processor is not fully initialized yet: Features such as floating
 	; point instructions and instruction set extensions are not initialized
-	; yet. The GDT should be loaded here. Paging should be enabled here.
+	; yet. Paging should be enabled here.
 	; C++ features such as global constructors and exceptions will require
 	; runtime support to work as well.
+
+	
+	cli ; Clear interrupt flag to disable interrupts while we set up the GDT
+	lgdt [GDT_descriptor] ; Load the GDT with the lgdt instruction
+	sti	; Set interrupt flag to enable interrupts now that the GDT is set up and protected mode is enabled
+
 
 	; Enter the high-level kernel. The ABI requires the stack is 16-byte
 	; aligned at the time of the call instruction (which afterwards pushes
