@@ -246,6 +246,27 @@ char kb_translate_key_press(kb_scancode_t scancode, kb_mod_state_t mods) {
     case KB_SCANCODE_Y: return mods & KB_MOD_SHIFT ? 'Y' : 'y';
     case KB_SCANCODE_Z: return mods & KB_MOD_SHIFT ? 'Z' : 'z';
     case KB_SCANCODE_SPACE: return ' ';
+    case KB_SCANCODE_BACKTICK: return mods & KB_MOD_SHIFT ? '~' : '`';
+    case KB_SCANCODE_1: return mods & KB_MOD_SHIFT ? '!' : '1';
+    case KB_SCANCODE_2: return mods & KB_MOD_SHIFT ? '@' : '2';
+    case KB_SCANCODE_3: return mods & KB_MOD_SHIFT ? '#' : '3';
+    case KB_SCANCODE_4: return mods & KB_MOD_SHIFT ? '$' : '4';
+    case KB_SCANCODE_5: return mods & KB_MOD_SHIFT ? '%' : '5';
+    case KB_SCANCODE_6: return mods & KB_MOD_SHIFT ? '^' : '6';
+    case KB_SCANCODE_7: return mods & KB_MOD_SHIFT ? '&' : '7';
+    case KB_SCANCODE_8: return mods & KB_MOD_SHIFT ? '*' : '8';
+    case KB_SCANCODE_9: return mods & KB_MOD_SHIFT ? '(' : '9';
+    case KB_SCANCODE_0: return mods & KB_MOD_SHIFT ? ')' : '0';
+    case KB_SCANCODE_MINUS: return mods & KB_MOD_SHIFT ? '_' : '-';
+    case KB_SCANCODE_EQUAL: return mods & KB_MOD_SHIFT ? '+' : '=';
+    case KB_SCANCODE_LBRACKET: return mods & KB_MOD_SHIFT ? '{' : '[';
+    case KB_SCANCODE_RBRACKET: return mods & KB_MOD_SHIFT ? '}' : ']';
+    case KB_SCANCODE_SEMICOLON: return mods & KB_MOD_SHIFT ? ':' : ';';
+    case KB_SCANCODE_QUOTES: return mods & KB_MOD_SHIFT ? '"' : '\'';
+    case KB_SCANCODE_BACKSLASH: return mods & KB_MOD_SHIFT ? '|' : '\\';
+    case KB_SCANCODE_COMMA: return mods & KB_MOD_SHIFT ? '<' : ',';
+    case KB_SCANCODE_PERIOD: return mods & KB_MOD_SHIFT ? '>' : '.';
+    case KB_SCANCODE_SLASH: return mods & KB_MOD_SHIFT ? '?' : '/';
     }
 
     return 0;
