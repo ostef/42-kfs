@@ -31,7 +31,7 @@ static tty_t *get_tty(tty_id_t id) {
 
 void tty_initialize(void) {
 	for (int i = 0; i < MAX_TTYS; i += 1) {
-		g_ttys[i].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);;
+		g_ttys[i].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 		g_ttys[i].cursor_visible = true;
 		tty_clear(i);
 	}
@@ -198,19 +198,16 @@ void tty_putchar(tty_id_t id, char c) {
 	} else if (tty->ansi_state == ANSI_STATE_CSI) {
 		if (c >= '0' && c <= '9') {
 			tty->ansi_param = tty->ansi_param * 10 + (c - '0');
-		} else {
-			// Only handle the 'm' command
-			if (c == 'm') {
-				if (tty->ansi_param == 0) {
-					tty->color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
-				} else if ((tty->ansi_param >= 30 && tty->ansi_param <= 37) || (tty->ansi_param >= 90 && tty->ansi_param <= 97)) {
-					tty->color = vga_entry_color(vga_color_get_fg(tty->color), ansi_to_vga(tty->ansi_param));
-				} else if ((tty->ansi_param >= 40 && tty->ansi_param <= 47) || (tty->ansi_param >= 100 && tty->ansi_param <= 107)) {
-					tty->color = vga_entry_color(ansi_to_vga(tty->ansi_param - 10), vga_color_get_bg(tty->color));
-				}
-
-				tty->ansi_state = ANSI_STATE_NORMAL;
+		} else if (c == 'm') {
+			if (tty->ansi_param == 0) {
+				tty->color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+			} else if ((tty->ansi_param >= 30 && tty->ansi_param <= 37) || (tty->ansi_param >= 90 && tty->ansi_param <= 97)) {
+				tty->color = vga_entry_color(vga_color_get_fg(tty->color), ansi_to_vga(tty->ansi_param));
+			} else if ((tty->ansi_param >= 40 && tty->ansi_param <= 47) || (tty->ansi_param >= 100 && tty->ansi_param <= 107)) {
+				tty->color = vga_entry_color(ansi_to_vga(tty->ansi_param - 10), vga_color_get_bg(tty->color));
 			}
+
+			tty->ansi_state = ANSI_STATE_NORMAL;
 		}
 	}
 }
