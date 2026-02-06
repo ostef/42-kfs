@@ -54,6 +54,20 @@ void kernel_main(void) {
 				if (kb_get_mod_state() == (KB_MOD_CTRL | KB_MOD_SHIFT)) {
 					if (kb.scancode >= KB_SCANCODE_1 && kb.scancode <= KB_SCANCODE_0) {
 						tty_set_active(kb.scancode - KB_SCANCODE_1);
+					} else if (kb.scancode == KB_SCANCODE_PAGE_UP) {
+						tty_id_t id = tty_get_active();
+						if (id == MAX_TTYS - 1) {
+							tty_set_active(0);
+						} else {
+							tty_set_active(id + 1);
+						}
+					} else if (kb.scancode == KB_SCANCODE_PAGE_DOWN) {
+						tty_id_t id = tty_get_active();
+						if (id == 0) {
+							tty_set_active(MAX_TTYS - 1);
+						} else {
+							tty_set_active(id - 1);
+						}
 					}
 				}
 			} break;
