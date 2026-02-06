@@ -55,7 +55,10 @@ enum {
 
 void vga_hide_cursor() {
 	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_START);
-	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, 0x20);
+	uint8_t current = ioport_read_byte(VGA_PORT_CRT_CONTROLLER_DATA);
+
+	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_START);
+	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, current | (uint8_t)(1 << 5));
 }
 
 void vga_show_cursor() {
@@ -63,7 +66,7 @@ void vga_show_cursor() {
 	uint8_t current = ioport_read_byte(VGA_PORT_CRT_CONTROLLER_DATA);
 
 	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_START);
-	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, current & 0x1f);
+	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, current & ~(uint8_t)(1 << 5));
 }
 
 void vga_set_cursor_extents(uint8_t start, uint8_t end) {
@@ -71,13 +74,13 @@ void vga_set_cursor_extents(uint8_t start, uint8_t end) {
 	uint8_t current = ioport_read_byte(VGA_PORT_CRT_CONTROLLER_DATA);
 
 	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_START);
-	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, current & 0x20 | start);
+	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, (current & 0x20) | (start & 0x04));
 
 	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_END);
 	current = ioport_read_byte(VGA_PORT_CRT_CONTROLLER_DATA);
 
 	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_ADDRESS, VGA_REGISTER_CURSOR_SCANLINE_END);
-	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, current & 0x30 | start);
+	ioport_write_byte(VGA_PORT_CRT_CONTROLLER_DATA, (current & 0x30) | (end & 0x04));
 }
 
 int32_t vga_get_cursor_offset() {
