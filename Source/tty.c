@@ -25,8 +25,11 @@ static tty_t *get_tty(tty_id_t id) {
 }
 
 void tty_initialize(void) {
-	g_ttys[0].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);;
-	tty_clear(0);
+	for (int i = 0; i < MAX_TTYS; i += 1) {
+		g_ttys[i].color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);;
+		tty_clear(i);
+	}
+
 	tty_set_active(0);
 }
 
