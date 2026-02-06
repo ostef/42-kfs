@@ -94,11 +94,11 @@ void tty_scroll_up(tty_id_t id) {
 }
 
 void tty_set_active(tty_id_t id) {
-	if (id < 0 || id >= MAX_TTYS) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
 		return;
 	}
 
-	tty_t *tty = &g_ttys[id];
 	g_active_tty = id;
 
 	for (int row = 0; row < VGA_HEIGHT; row += 1) {
