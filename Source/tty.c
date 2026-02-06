@@ -1,6 +1,13 @@
 #include "tty.h"
 #include "vga.h"
 
+typedef uint8_t ansi_state_t;
+enum {
+	ANSI_STATE_NORMAL,
+	ANSI_STATE_ESC,
+	ANSI_STATE_CSI
+};
+
 typedef struct tty_t {
 	k_size_t row;
 	k_size_t column;

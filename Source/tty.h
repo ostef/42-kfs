@@ -5,13 +5,6 @@
 
 #define MAX_TTYS 10
 
-typedef uint8_t ansi_state_t;
-enum {
-	ANSI_STATE_NORMAL,
-	ANSI_STATE_ESC,
-	ANSI_STATE_CSI
-};
-
 typedef int32_t tty_id_t;
 
 void tty_initialize(void);
