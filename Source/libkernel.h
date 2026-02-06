@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LIBKERNEL_H
+#define LIBKERNEL_H
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -77,4 +78,4 @@ k_size_t k_print_ptr(const void *ptr);
 k_size_t k_vprintf(const char *fmt, va_list va);
 k_size_t k_printf(const char *fmt, ...);
 
-k_size_t k_printf(const char *fmt, ...);
+#endif // LIBKERNEL_H
