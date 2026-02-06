@@ -1,8 +1,5 @@
-#include <stddef.h>
-#include <stdint.h>
-
-#include "vga.h"
 #include "tty.h"
+#include "vga.h"
 
 typedef struct tty_t {
 	k_size_t row;
