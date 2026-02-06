@@ -138,9 +138,9 @@ static uint8_t ansi_to_vga(uint8_t ansi) {
 		case 90: return VGA_COLOR_DARK_GREY;
 		case 91: return VGA_COLOR_LIGHT_RED;
 		case 92: return VGA_COLOR_LIGHT_GREEN;
-		case 93: return VGA_COLOR_LIGHT_BROWN;
+		case 93: return VGA_COLOR_YELLOW;
 		case 94: return VGA_COLOR_LIGHT_BLUE;
-		case 95: return VGA_COLOR_LIGHT_MAGENTA;
+		case 95: return VGA_COLOR_PINK;
 		case 96: return VGA_COLOR_LIGHT_CYAN;
 		case 97: return VGA_COLOR_WHITE;
 		default: return VGA_COLOR_LIGHT_GREY;
@@ -207,9 +207,9 @@ void tty_putchar(tty_id_t id, char c) {
 			if (tty->ansi_param == 0) {
 				tty->color = vga_entry_color(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
 			} else if ((tty->ansi_param >= 30 && tty->ansi_param <= 37) || (tty->ansi_param >= 90 && tty->ansi_param <= 97)) {
-				tty->color = vga_entry_color(vga_color_get_fg(tty->color), ansi_to_vga(tty->ansi_param));
+				tty->color = vga_entry_color(ansi_to_vga(tty->ansi_param), vga_color_get_bg(tty->color));
 			} else if ((tty->ansi_param >= 40 && tty->ansi_param <= 47) || (tty->ansi_param >= 100 && tty->ansi_param <= 107)) {
-				tty->color = vga_entry_color(ansi_to_vga(tty->ansi_param - 10), vga_color_get_bg(tty->color));
+				tty->color = vga_entry_color(vga_color_get_fg(tty->color), ansi_to_vga(tty->ansi_param - 10));
 			}
 
 			tty->ansi_state = ANSI_STATE_NORMAL;
