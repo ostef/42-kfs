@@ -153,7 +153,8 @@ void tty_putchar(tty_id_t id, char c) {
 		return;
 	}
 
-	if (tty->ansi_state == ANSI_STATE_NORMAL) {
+	switch (tty->ansi_state) {
+	case ANSI_STATE_NORMAL: {
 		if (c == '\x1b') {
 			tty->ansi_state = ANSI_STATE_ESC;
 		} else {
@@ -188,14 +189,18 @@ void tty_putchar(tty_id_t id, char c) {
 				vga_set_cursor_position(tty->column, tty->row);
 			}
 		}
-	} else if (tty->ansi_state == ANSI_STATE_ESC) {
+	} break;
+
+	case ANSI_STATE_ESC: {
 		if (c == '[') {
 			tty->ansi_state = ANSI_STATE_CSI;
 			tty->ansi_param = 0;
 		} else {
 			tty->ansi_state = ANSI_STATE_NORMAL;
 		}
-	} else if (tty->ansi_state == ANSI_STATE_CSI) {
+	} break;
+
+	case ANSI_STATE_CSI: {
 		if (c >= '0' && c <= '9') {
 			tty->ansi_param = tty->ansi_param * 10 + (c - '0');
 		} else if (c == 'm') {
@@ -209,6 +214,7 @@ void tty_putchar(tty_id_t id, char c) {
 
 			tty->ansi_state = ANSI_STATE_NORMAL;
 		}
+	} break;
 	}
 }
 
