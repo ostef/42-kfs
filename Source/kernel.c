@@ -36,8 +36,17 @@ void kernel_main(void) {
 	while (true) {
 		kb_event_t kb;
 		if (kb_poll_event(&kb)) {
-			if (kb.type == KB_EVENT_TEXT_INPUT) {
+			switch (kb.type) {
+			case KB_EVENT_TEXT_INPUT: {
 				k_printf("%c", kb.ascii_value);
+			} break;
+
+			case KB_EVENT_PRESS:
+			case KB_EVENT_REPEAT: {
+				if (kb.scancode == KB_SCANCODE_RETURN) {
+					k_printf("\n");
+				}
+			} break;
 			}
 		}
 	}
