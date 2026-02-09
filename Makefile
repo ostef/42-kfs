@@ -28,6 +28,8 @@ LD=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-ld
 GCC=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gcc
 GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 
+GRUB_COMPRESS?=xz
+
 C_FLAGS?=-O0 -g
 C_FLAGS:=$(C_FLAGS) -ffreestanding -Wall -Wextra
 C_INCLUDE_DIRS=$(addprefix -I,$(INCLUDE_DIRS))
@@ -44,7 +46,7 @@ run: $(TARGET_ISO)
 
 $(TARGET_ISO): $(TARGET)
 	cp $(TARGET) $(SYSTEM_DIR)/boot/pantheon
-	grub-mkrescue $(SYSTEM_DIR) -o $@
+	grub-mkrescue --compress=$(GRUB_COMPRESS) $(SYSTEM_DIR) -o $@
 
 $(TARGET): $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(SOURCE_DIR)/linker.ld
 	$(GCC) -T $(SOURCE_DIR)/linker.ld $(LINK_FLAGS) $(addprefix $(BUILD_DIR)/,$(OBJECT_FILES)) $(addprefix -l,$(LIBS)) -o $@
