@@ -95,7 +95,7 @@ static void text_buffer_reset() {
 	g_shell_text_cursor = 0;
 }
 
-static void shell_prompt() {
+static int shell_prompt(char *buff) {
 	tty_putstr(0, "$>");
 
 	bool submitted = false;
@@ -128,11 +128,68 @@ static void shell_prompt() {
 	}
 
 	tty_putchar(0, '\n');
+
+	k_memcpy(buff, g_shell_text_buffer, g_shell_text_length);
+	int len = g_shell_text_length;
+
 	text_buffer_reset();
+
+	return len;
+}
+
+static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_offset, k_size_t *out_len) {
+	k_size_t i = inout_offset ? *inout_offset : 0;
+	k_size_t len = 0;
+
+	while (i < buff_len && k_is_space(buff[i])) {
+		i += 1;
+	}
+
+	while (i + len < buff_len && !k_is_space(buff[i + len])) {
+		len += 1;
+	}
+
+	if (inout_offset) {
+		*inout_offset = i;
+	}
+	if (out_len) {
+		*out_len = len;
+	}
 }
 
 void shell_loop() {
+	char buff[k_array_count(g_shell_text_buffer)];
 	while (true) {
-		shell_prompt();
+		int len = shell_prompt(buff);
+
+		k_size_t cmd_idx = 0, cmd_len = 0;
+		get_next_arg(buff, len, &cmd_idx, &cmd_len);
+		const char *cmd = buff + cmd_idx;
+
+		if (cmd_len >= k_strlen("echo") && k_strncmp(cmd, "echo", cmd_len) == 0) {
+			bool first = true;
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			while (arg_idx < len) {
+				if (!first) {
+					k_printf(" ");
+				}
+
+				first = false;
+
+				get_next_arg(buff, len, &arg_idx, &arg_len);
+				k_printf("%S", arg_len, buff + arg_idx);
+
+				arg_idx += arg_len;
+			}
+
+			k_printf("\n");
+		} else if (cmd_len >= k_strlen("clear") && k_strncmp(cmd, "clear", cmd_len) == 0) {
+			tty_clear(0);
+		} else if (cmd_len >= k_strlen("halt") && k_strncmp(cmd, "halt", cmd_len) == 0) {
+			k_printf("Halt\n");
+			return;
+		} else if (cmd_len > 0) {
+			k_printf("Error: unknown command '%S'\n", cmd_len, cmd);
+		}
 	}
 }
