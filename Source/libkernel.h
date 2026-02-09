@@ -56,7 +56,13 @@ int k_memcmp(const void *a, const void *b, k_size_t length);
 k_size_t k_strlen(const char *str);
 char *k_strcpy(char *dst, const char *src);
 int k_strcmp(const char *a, const char *b);
+int k_strncmp(const char *a, const char *b, k_size_t n);
 bool k_streq(const char *a, const char *b);
+
+bool k_is_print(char c);
+bool k_is_alpha(char c);
+bool k_is_digit(char c);
+bool k_is_space(char c);
 
 typedef struct k_format_int_t {
 	int min_digits;
