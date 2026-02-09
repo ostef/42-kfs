@@ -83,19 +83,19 @@ NUM_JOBS?=1
 
 $(BINUTILS_SRC):
 	mkdir -p $(TOOLS_PREFIX)
-	wget -P $(TOOLS_PREFIX)/src https://ftp.gnu.org/gnu/binutils/binutils-$(BINUTILS_VERSION).tar.xz
+	wget -P $(TOOLS_PREFIX)/src https://mirror.ibcp.fr/pub/gnu/binutils/binutils-$(BINUTILS_VERSION).tar.xz
 	tar -xf $(TOOLS_PREFIX)/src/binutils-$(BINUTILS_VERSION).tar.xz
 	mv binutils-$(BINUTILS_VERSION) $(TOOLS_PREFIX)/src
 
 $(GCC_SRC):
 	mkdir -p $(TOOLS_PREFIX)
-	wget -P $(TOOLS_PREFIX)/src https://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/gcc-$(GCC_VERSION).tar.xz
+	wget -P $(TOOLS_PREFIX)/src https://mirror.ibcp.fr/pub/gnu/gcc/gcc-$(GCC_VERSION)/gcc-$(GCC_VERSION).tar.xz
 	tar -xf $(TOOLS_PREFIX)/src/gcc-$(GCC_VERSION).tar.xz
 	mv gcc-$(GCC_VERSION) $(TOOLS_PREFIX)/src
 
 $(GDB_SRC):
 	mkdir -p $(TOOLS_PREFIX)
-	wget -P $(TOOLS_PREFIX)/src https://ftp.gnu.org/gnu/gdb/gdb-$(GDB_VERSION).tar.xz
+	wget -P $(TOOLS_PREFIX)/src https://mirror.ibcp.fr/pub/gnu/gdb/gdb-$(GDB_VERSION).tar.xz
 	tar -xf $(TOOLS_PREFIX)/src/gdb-$(GDB_VERSION).tar.xz
 	mv gdb-$(GDB_VERSION) $(TOOLS_PREFIX)/src
 
