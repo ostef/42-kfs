@@ -41,33 +41,46 @@ stack_top:
 ; Declare _start as a function symbol with the given symbol size.
 section .text
 
-	GDT_start:
-		null_descriptor:
-			dd 0
-			dd 0
-		code_descriptor:
-			dw 0xFFFF ; limit low
-			dw 0x0000 ; base low		16 bits +
-			db 0x00   ; base middle		8 bits
-			db 0x9A   ; 0x9A => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 1, conforming = 0, readable = 1, accessed (manage by cpu) = 0) => 0b10011010
-			db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
-			db 0x00   ; base high
-		data_descriptor:
-			dw 0xFFFF ; limit low
-			dw 0x0000 ; base low		16 bits +
-			db 0x00   ; base middle		8 bits
-			db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, conforming = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010010
-			db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
-			db 0x00   ; base high
-	GDT_end:
-
-	CODE_SEGMENT equ code_descriptor - GDT_start
-	DATA_SEGMENT equ data_descriptor - GDT_start
-
-	GDT_descriptor:
-		dw GDT_end - GDT_start - 1 ; limit (size of GDT)
-		dd GDT_start ; base (address of GDT)
+GDT_start:
+	null_descriptor:
+		dd 0
+		dd 0
+	ring_0_code_descriptor:
+		dw 0xFFFF ; limit low
+		dw 0x0000 ; base low		16 bits +
+		db 0x00   ; base middle		8 bits
+		db 0x9A   ; 0x9A => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 1, conforming = 0, readable = 1, accessed (manage by cpu) = 0) => 0b10011010
+		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
+		db 0x00   ; base high
+	ring_0_data_descriptor:
+		dw 0xFFFF ; limit low
+		dw 0x0000 ; base low		16 bits +
+		db 0x00   ; base middle		8 bits
+		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, conforming = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010010
+		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
+		db 0x00   ; base high
+	ring_3_code_descriptor:
 		
+GDT_end:
+
+CODE_SEGMENT equ ring_0_code_descriptor - GDT_start
+DATA_SEGMENT equ ring_0_data_descriptor - GDT_start
+
+GDT_descriptor:
+	dw GDT_end - GDT_start - 1 ; limit (size of GDT)
+	dd GDT_start ; base (address of GDT)
+
+
+bits 32
+Start_kernel:
+	mov		ax, DATA_SEGMENT		; set data segments to data selector (0x10)
+	mov		ds, ax
+	mov		ss, ax
+	mov		es, ax
+	extern kernel_main
+	call kernel_main
+
+
 global _start:function (_start.end - _start)
 _start:
 	; The bootloader has loaded us into 32-bit protected mode on a x86
@@ -101,6 +114,7 @@ _start:
 	sti	; Set interrupt flag to enable interrupts now that the GDT is set up and protected mode is enabled
 
 
+
 	; Enter the high-level kernel. The ABI requires the stack is 16-byte
 	; aligned at the time of the call instruction (which afterwards pushes
 	; the return pointer of size 4 bytes). The stack was originally 16-byte
@@ -108,8 +122,8 @@ _start:
 	; stack since (pushed 0 bytes so far) and the alignment is thus
 	; preserved and the call is well defined.
     ; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
-	extern kernel_main
-	call kernel_main
+	jmp CODE_SEGMENT:Start_kernel ; Far jump to set the code segment register (CS) to the kernel code segment ( 0x08 )and jump to the kernel entry point. 
+
 
 	; If the system has nothing more to do, put the computer into an
 	; infinite loop. To do that:
