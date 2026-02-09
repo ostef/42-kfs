@@ -10,6 +10,7 @@ SOURCE_FILES=boot.asm \
 	tty.c \
 	interrupt_handlers.asm \
 	keyboard.c \
+	shell.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
 	LibKernel/print.c
