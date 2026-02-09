@@ -32,11 +32,7 @@ void kernel_main(void) {
 
 	tty_clear(0);
 
-	k_printf("Welcome to Pantheon OS\n");
-	k_printf("42\n");
-	k_printf("kernel_main=%p\n", kernel_main);
-	k_printf("This is some \x1b[31mred\x1b[0m text.\n");
-	k_printf("This is some \x1b[41mred\x1b[0m text.\n");
-
+	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
+	shell_print_help();
 	shell_loop();
 }

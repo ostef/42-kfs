@@ -157,6 +157,10 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 	}
 }
 
+void shell_print_help() {
+	k_printf("Commands: help, clear, echo [args...], halt\n");
+}
+
 void shell_loop() {
 	char buff[k_array_count(g_shell_text_buffer)];
 	while (true) {
@@ -185,11 +189,13 @@ void shell_loop() {
 			k_printf("\n");
 		} else if (cmd_len >= k_strlen("clear") && k_strncmp(cmd, "clear", cmd_len) == 0) {
 			tty_clear(0);
+		} else if (cmd_len >= k_strlen("help") && k_strncmp(cmd, "help", cmd_len) == 0) {
+			shell_print_help();
 		} else if (cmd_len >= k_strlen("halt") && k_strncmp(cmd, "halt", cmd_len) == 0) {
 			k_printf("Halt\n");
 			return;
 		} else if (cmd_len > 0) {
-			k_printf("Error: unknown command '%S'\n", cmd_len, cmd);
+			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
 		}
 	}
 }
