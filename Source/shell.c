@@ -159,7 +159,7 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], shutdown, reboot\n");
+	k_printf("Commands: help, clear, echo [args...], stackdump, shutdown, reboot\n");
 }
 
 void shell_loop() {
@@ -192,6 +192,8 @@ void shell_loop() {
 			tty_clear(0);
 		} else if (cmd_len >= k_strlen("help") && k_strncmp(cmd, "help", cmd_len) == 0) {
 			shell_print_help();
+		} else if (cmd_len >= k_strlen("stackdump") && k_strncmp(cmd, "stackdump", cmd_len) == 0) {
+			k_printf("@Todo\n");
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);
