@@ -60,7 +60,7 @@ GDT_start:
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
 		db 0x00   ; base high
 	ring_3_code_descriptor:
-		
+
 GDT_end:
 
 CODE_SEGMENT equ ring_0_code_descriptor - GDT_start
@@ -108,11 +108,9 @@ _start:
 	; C++ features such as global constructors and exceptions will require
 	; runtime support to work as well.
 
-	
+
 	cli ; Clear interrupt flag to disable interrupts while we set up the GDT
 	lgdt [GDT_descriptor] ; Load the GDT with the lgdt instruction
-	sti	; Set interrupt flag to enable interrupts now that the GDT is set up and protected mode is enabled
-
 
 
 	; Enter the high-level kernel. The ABI requires the stack is 16-byte
@@ -122,7 +120,7 @@ _start:
 	; stack since (pushed 0 bytes so far) and the alignment is thus
 	; preserved and the call is well defined.
     ; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
-	jmp CODE_SEGMENT:Start_kernel ; Far jump to set the code segment register (CS) to the kernel code segment ( 0x08 )and jump to the kernel entry point. 
+	jmp CODE_SEGMENT:Start_kernel ; Far jump to set the code segment register (CS) to the kernel code segment ( 0x08 )and jump to the kernel entry point.
 
 
 	; If the system has nothing more to do, put the computer into an
