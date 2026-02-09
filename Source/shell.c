@@ -2,6 +2,7 @@
 #include "keyboard.h"
 #include "tty.h"
 #include "vga.h" // Ugh... We shouldn't need VGA specific stuff here...
+#include "ioport.h" // For QEMU specific shutdown command
 
 static char g_shell_text_buffer[200];
 static int g_shell_text_length;
@@ -158,7 +159,7 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], halt\n");
+	k_printf("Commands: help, clear, echo [args...], shutdown, reboot\n");
 }
 
 void shell_loop() {
@@ -191,8 +192,11 @@ void shell_loop() {
 			tty_clear(0);
 		} else if (cmd_len >= k_strlen("help") && k_strncmp(cmd, "help", cmd_len) == 0) {
 			shell_print_help();
-		} else if (cmd_len >= k_strlen("halt") && k_strncmp(cmd, "halt", cmd_len) == 0) {
-			k_printf("Halt\n");
+		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
+			k_printf("Shutting down\n");
+			ioport_write_word(0x604, 0x2000);
+		} else if (cmd_len >= k_strlen("reboot") && k_strncmp(cmd, "reboot", cmd_len) == 0) {
+			k_printf("Rebooting\n");
 			return;
 		} else if (cmd_len > 0) {
 			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
