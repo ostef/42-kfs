@@ -8,7 +8,7 @@ MEMINFO  equ  1 << 1            	; provide memory map
 MBFLAGS  equ  MBALIGN | MEMINFO 	; this is the Multiboot 'flag' field
 MAGIC    equ  0x1BADB002        	; 'magic number' lets bootloader find the header
 CHECKSUM equ -(MAGIC + MBFLAGS) 	; checksum of above, to prove we are multiboot
-                                	; CHECKSUM + MAGIC + MBFLAGS should be Zero (0)
+									; CHECKSUM + MAGIC + MBFLAGS should be Zero (0)
 
 ; Declare a multiboot header that marks the program as a kernel. These are magic
 ; values that are documented in the multiboot standard. The bootloader will
@@ -40,7 +40,7 @@ stack_top:
 
 align 16
 u_stack_bottom:
-    resb 8192      					; 8 KiB for user stack
+	resb 8192      					; 8 KiB for user stack
 u_stack_top:
 
 global stack_bottom
@@ -123,8 +123,9 @@ Start_kernel:
 
 	mov ax, KERNEL_STACK_SEGMENT	; set stack segment to kernel stack selector (0x18)
 	mov ss, ax
-	mov esp, stack_top      		; allocated memory top
 
+	mov esp, stack_top
+	sub esp, 8						; account for the multiboot values we pushed earlier
 
 	extern kernel_main
 	call kernel_main
@@ -132,6 +133,8 @@ Start_kernel:
 
 global _start:function (_start.end - _start)
 _start:
+	cli ; Clear interrupt flag
+
 	; The bootloader has loaded us into 32-bit protected mode on a x86
 	; machine. Interrupts are disabled. Paging is disabled. The processor
 	; state is as defined in the multiboot standard. The kernel has full
@@ -148,6 +151,13 @@ _start:
 	; in assembly as languages such as C cannot function without a stack.
 	mov esp, stack_top
 
+	; EBX contains the physical address of the Multiboot information structure
+	; EAX contains the magic value 2BADB002, which indicates that the OS was
+	; loaded by a Multiboot compliant boot loader
+	; These two values are intercepted by our KernelMain function as parameters
+	push ebx
+	push eax
+
 	; This is a good place to initialize crucial processor state before the
 	; high-level kernel is entered. It's best to minimize the early
 	; environment where crucial features are offline. Note that the
@@ -159,15 +169,13 @@ _start:
 
 
 	; Copy GDT to physical address 0x800
-    cld                             ; ensure forward copy
-    mov esi, GDT_start              ; source
-    mov edi, GDT_PHYS_ADDR          ; destination (0x800)
-    mov ecx, GDT_end - GDT_start    ; size in bytes
-    rep movsb						; copy ecx by byte from [esi] to [edi]
+	cld                             ; ensure forward copy
+	mov esi, GDT_start              ; source
+	mov edi, GDT_PHYS_ADDR          ; destination (0x800)
+	mov ecx, GDT_end - GDT_start    ; size in bytes
+	rep movsb						; copy ecx by byte from [esi] to [edi]
 
-	cli ; Clear interrupt flag to disable interrupts while we set up the GDT
 	lgdt [GDT_descriptor] ; Load the GDT with the lgdt instruction
-
 
 	; Enter the high-level kernel. The ABI requires the stack is 16-byte
 	; aligned at the time of the call instruction (which afterwards pushes
@@ -175,7 +183,7 @@ _start:
 	; aligned above and we've since pushed a multiple of 16 bytes to the
 	; stack since (pushed 0 bytes so far) and the alignment is thus
 	; preserved and the call is well defined.
-    ; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
+	; note, that if you are building on Windows, C functions may have "_" prefix in assembly: _kernel_main
 	jmp CODE_SEGMENT:Start_kernel ; Far jump to set the code segment register (CS) to the kernel code segment ( 0x08 )and jump to the kernel entry point.
 
 
