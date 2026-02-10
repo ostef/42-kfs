@@ -218,6 +218,36 @@ void tty_putchar(tty_id_t id, char c) {
 	}
 }
 
+void tty_putstr(tty_id_t id, const char *str) {
+	k_size_t i = 0;
+	while (str[i]) {
+		tty_putchar(id, str[i]);
+		i += 1;
+	}
+}
+
+void tty_putchar_at(tty_id_t id, char c, int col, int row) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (col < 0 || col >= VGA_WIDTH) {
+		return;
+	}
+	if (row < 0 || row >= VGA_HEIGHT) {
+		return;
+	}
+
+	uint16_t entry = vga_entry(c, tty->color);
+
+	tty->screen_buff[row * VGA_WIDTH + col] = entry;
+
+	if (g_active_tty == id) {
+		vga_set_entry_at(col, row, entry);
+	}
+}
+
 void tty_set_color(tty_id_t id, uint8_t color) {
 	tty_t *tty = get_tty(id);
 	if (!tty) {
@@ -300,5 +330,115 @@ void tty_get_cursor_position(tty_id_t id, int *col, int *row) {
 	}
 	if (row) {
 		*row = tty->row;
+	}
+}
+
+void tty_move_cursor_left(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->column > 0) {
+		tty->column -= 1;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_move_cursor_left_wrap(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->column > 0) {
+		tty->column -= 1;
+	} else if (tty->row > 0) {
+		tty->row -= 1;
+		tty->column = VGA_WIDTH - 1;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_move_cursor_right(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->column < VGA_WIDTH - 1) {
+		tty->column += 1;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_move_cursor_right_wrap(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->column < VGA_WIDTH - 1) {
+		tty->column += 1;
+	} else if (tty->row < VGA_HEIGHT - 1) {
+		tty->row += 1;
+		tty->column = 0;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_move_cursor_up(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->row > 0) {
+		tty->row -= 1;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_move_cursor_down(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	if (tty->row < VGA_HEIGHT - 1) {
+		tty->row += 1;
+	}
+
+	if (g_active_tty == id) {
+		vga_set_cursor_position(tty->column, tty->row);
+	}
+}
+
+void tty_clear_char(tty_id_t id) {
+	tty_t *tty = get_tty(id);
+	if (!tty) {
+		return;
+	}
+
+	uint16_t entry = vga_entry(0, tty->color);
+	tty->screen_buff[tty->row * VGA_WIDTH + tty->column] = entry;
+
+	if (g_active_tty == id) {
+		vga_set_entry_at(tty->column, tty->row, entry);
 	}
 }

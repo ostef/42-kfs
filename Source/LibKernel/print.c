@@ -132,6 +132,14 @@ k_size_t k_vprintf(const char *fmt, va_list va) {
 			}
 
 			switch(fmt[i]) {
+			case 'S': {
+				k_size_t len = va_arg(va, k_size_t);
+				const char *str = va_arg(va, const char *);
+				for (k_size_t i = 0; i < len; i += 1) {
+					result += k_print_char(str[i]);
+				}
+			} break;
+
 			case 's': {
 				const char *str = va_arg(va, const char *);
 				result += k_print_str(str);
