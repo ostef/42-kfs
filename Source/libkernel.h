@@ -82,6 +82,7 @@ k_size_t k_print_int(int x);
 k_size_t k_print_uint(unsigned int x);
 k_size_t k_print_hex(unsigned int x);
 k_size_t k_print_bin(unsigned int x);
+k_size_t k_print_pretty_size(unsigned int x);
 k_size_t k_print_ptr(const void *ptr);
 
 k_size_t k_vprintf(const char *fmt, va_list va);
@@ -91,5 +92,6 @@ uint32_t k_get_esp(void);
 
 k_size_t k_print_all_stack(int lines);
 k_size_t k_print_stack(void);
+k_size_t k_print_registers(void);
 
 #endif // LIBKERNEL_H

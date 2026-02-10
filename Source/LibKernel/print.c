@@ -109,6 +109,22 @@ k_size_t k_print_bin(unsigned int x) {
 		});
 }
 
+k_size_t k_print_pretty_size(unsigned int x) {
+	if (x < 1024) {
+        k_print_uint(x);
+        k_print_str(" B");
+    } else if (x < 1024 * 1024) {
+        k_print_uint(x / 1024);
+        k_print_str(" KiB");
+    } else if (x < 1024 * 1024 * 1024) {
+        k_print_uint(x / (1024 * 1024));
+        k_print_str(" MiB");
+    } else {
+        k_print_uint(x / (1024 * 1024 * 1024));
+        k_print_str(" GiB");
+    }
+}
+
 k_size_t k_print_ptr(const void *ptr) {
 	k_size_t result= k_print_str("0x");
 	result += k_print_uint_formatted((uintptr_t)ptr, (k_format_int_t){
@@ -127,9 +143,19 @@ k_size_t k_vprintf(const char *fmt, va_list va) {
 	while (fmt[i]) {
 		if (fmt[i] == '%') {
 			i += 1;
-			if (!fmt[i]) {
-				return result;
-			}
+
+            int min_digits = 1;
+
+            if (fmt[i] == '.') {
+                i += 1;
+                min_digits = 0;
+
+                while (fmt[i] >= '0' && fmt[i] <= '9') {
+                    min_digits *= 10;
+                    min_digits += fmt[i] - '0';
+                    i += 1;
+                }
+            }
 
 			switch(fmt[i]) {
 			case 'S': {
@@ -148,22 +174,47 @@ k_size_t k_vprintf(const char *fmt, va_list va) {
 			case 'd':
 			case 'i': {
 				int i = va_arg(va, int);
-				result += k_print_int(i);
+				result += k_print_int_formatted(i, (k_format_int_t){
+					.min_digits=min_digits,
+					.pad_char='0',
+					.base_n=10,
+					.base="0123456789",
+				});
 			} break;
 
 			case 'u': {
 				unsigned int u = va_arg(va, unsigned int);
-				result += k_print_uint(u);
+				result += k_print_uint_formatted(u, (k_format_int_t){
+					.min_digits=min_digits,
+					.pad_char='0',
+					.base_n=10,
+					.base="0123456789",
+				});
 			} break;
 
 			case 'x': {
 				unsigned int u = va_arg(va, unsigned int);
-				result += k_print_hex(u);
+				result += k_print_uint_formatted(u, (k_format_int_t){
+					.min_digits=min_digits,
+					.pad_char='0',
+					.base_n=16,
+					.base="0123456789ABCDEF",
+				});
+			} break;
+
+			case 'n': {
+				unsigned int u = va_arg(va, unsigned int);
+				result += k_print_pretty_size(u);
 			} break;
 
 			case 'b': {
 				unsigned int u = va_arg(va, unsigned int);
-				result += k_print_bin(u);
+				result += k_print_uint_formatted(u, (k_format_int_t){
+					.min_digits=min_digits,
+					.pad_char='0',
+					.base_n=2,
+					.base="01",
+				});
 			} break;
 
 			case 'p': {
@@ -174,6 +225,10 @@ k_size_t k_vprintf(const char *fmt, va_list va) {
 			case 'c': {
 				char c = (char)va_arg(va, int);
 				result += k_print_char(c);
+			} break;
+
+			default : {
+				result += k_print_char(fmt[i]);
 			} break;
 			}
 		} else {
@@ -248,6 +303,37 @@ k_size_t k_print_stack(void)
 	}
 
 	result += k_print_str("Stack top\n\n");
+
+	return result;
+}
+
+k_size_t k_print_registers(void) {
+    uint32_t eax, ebx, ecx, edx, esi, edi, ebp, esp;
+
+    asm volatile (
+        "mov %%eax, %0\n"
+        "mov %%ebx, %1\n"
+        "mov %%ecx, %2\n"
+        "mov %%edx, %3\n"
+        "mov %%esi, %4\n"
+        "mov %%edi, %5\n"
+        "mov %%ebp, %6\n"
+        "mov %%esp, %7\n"
+        : "=m"(eax), "=m"(ebx), "=m"(ecx), "=m"(edx),
+          "=m"(esi), "=m"(edi), "=m"(ebp), "=m"(esp)
+    );
+
+	k_size_t result = 0;
+	result += k_printf("Registers:\n");
+    result += k_printf("AX=%x ", eax);
+    result += k_printf("BX=%x ", ebx);
+    result += k_printf("CX=%x ", ecx);
+    result += k_printf("DX=%x ", edx);
+    result += k_printf("SI=%x ", esi);
+    result += k_printf("DI=%x ", edi);
+    result += k_printf("BP=%x ", ebp);
+    result += k_printf("SP=%x ", esp);
+	result += k_printf("\n");
 
 	return result;
 }

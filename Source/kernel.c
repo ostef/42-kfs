@@ -7,6 +7,7 @@
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_print_stack();
+	k_print_registers();
 
 	k_printf("\x1b[31m");
 
@@ -26,9 +27,20 @@ void k_assertion_failure(const char *expr, const char *msg, const char *func, co
 	k_pseudo_breakpoint();
 }
 
-void kernel_main(void) {
+void print_multiboot_info(const multiboot_info_t *info);
+
+void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) {
 	com1_initialize();
 	tty_initialize();
+
+	if (magic_number != MULTIBOOT_BOOTLOADER_MAGIC) {
+		k_printf("Error: bootloader is not multiboot compliant (magic number is %x)\n", magic_number);
+		k_panic("Boot error");
+		return;
+	}
+
+	print_multiboot_info(multiboot_info);
+
 	interrupts_initialize();
 	kb_initialize();
 
