@@ -45,39 +45,53 @@ GDT_start:
 	null_descriptor:
 		dd 0
 		dd 0
-	ring_0_code_descriptor:
+	code_descriptor:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
 		db 0x9A   ; 0x9A => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 1, conforming = 0, readable = 1, accessed (manage by cpu) = 0) => 0b10011010
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
 		db 0x00   ; base high
-	ring_0_data_descriptor:
+	data_descriptor:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
-		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, conforming = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010010
+		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010010
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
 		db 0x00   ; base high
-	ring_3_code_descriptor:
+	kernel_stack_descriptor:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
-		db 0xFA   ; 0xFA => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 1, conforming = 0, readable = 1, accessed (manage by cpu) = 0) => 0b11111010
+		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b10010110
+		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
+		db 0x00   ; base high
+	ucode_descriptor:
+		dw 0xFFFF ; limit low
+		dw 0x0000 ; base low		16 bits +
+		db 0x00   ; base middle		8 bits
+		db 0xFA   ; 0xFA => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 1, direction = 0, readable = 1, accessed (manage by cpu) = 0) => 0b11111010
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
 		db 0x00   ; base high
-	ring_3_data_descriptor:
+	udata_descriptor:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
 		db 0xF2   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, conforming = 0, writable = 1, accessed (manage by cpu) = 0) => 0b11110010
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 11001111
 		db 0x00   ; base high
+	ustack_descriptor:
+		dw 0xFFFF ; limit low
+		dw 0x0000 ; base low		16 bits +
+		db 0x00   ; base middle		8 bits
+		db 0xF6   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b11110110
+		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
+		db 0x00   ; base high
 
 GDT_end:
 
-CODE_SEGMENT equ ring_0_code_descriptor - GDT_start
-DATA_SEGMENT equ ring_0_data_descriptor - GDT_start
+CODE_SEGMENT equ code_descriptor - GDT_start
+DATA_SEGMENT equ data_descriptor - GDT_start
 
 GDT_descriptor:
 	dw GDT_end - GDT_start - 1 ; limit (size of GDT)
