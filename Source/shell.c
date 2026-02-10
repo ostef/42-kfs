@@ -23,7 +23,7 @@ static void text_move_cursor_right() {
 }
 
 static void text_insert(char c) {
-	if (g_shell_text_length >= k_array_count(g_shell_text_buffer)) {
+	if (g_shell_text_length >= (int)k_array_count(g_shell_text_buffer)) {
 		return;
 	}
 

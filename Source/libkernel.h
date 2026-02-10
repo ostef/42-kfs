@@ -49,8 +49,8 @@ void k_assertion_failure(
     bool panic
 );
 
-extern void stack_top;
-extern void stack_bottom;
+extern uint32_t stack_top;
+extern uint32_t stack_bottom;
 
 void *k_memset(void *dst, k_byte_t value, k_size_t length);
 void *k_memcpy(void *dst, const void *src, k_size_t length);

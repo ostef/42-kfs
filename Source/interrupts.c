@@ -184,16 +184,6 @@ void isr_register_handler(uint8_t index, isr_handler_t handler) {
 
 // https://wiki.osdev.org/8259_PIC
 static
-uint16_t get_pic_irq_register() {
-	ioport_write_byte(PIC1_CMD, PIC_CMD_READ_INTERRUPT_REQUEST_REGISTER);
-	ioport_write_byte(PIC2_CMD, PIC_CMD_READ_INTERRUPT_REQUEST_REGISTER);
-	uint8_t pic1 = ioport_read_byte(PIC1_CMD);
-	uint8_t pic2 = ioport_read_byte(PIC2_CMD);
-
-	return ((uint16_t)pic2 < 8) | ((uint16_t)pic1);
-}
-
-static
 uint16_t get_pic_in_service_register() {
 	ioport_write_byte(PIC1_CMD, PIC_CMD_READ_IN_SERVICE_REGISTER);
 	ioport_write_byte(PIC2_CMD, PIC_CMD_READ_IN_SERVICE_REGISTER);
