@@ -1,5 +1,3 @@
-; https://wiki.osdev.org/Bare_Bones_with_NASM
-
 ; Declare constants for the multiboot header.
 MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
 MEMINFO  equ  1 << 1            ; provide memory map
@@ -50,7 +48,6 @@ global u_stack_top
 ; doesn't make sense to return from this function as the bootloader is gone.
 ; Declare _start as a function symbol with the given symbol size.
 section .text
-
 GDT_start:
 	null_descriptor:
 		dd 0
@@ -107,9 +104,11 @@ USER_CODE_SEGMENT equ ucode_descriptor - GDT_start
 USER_DATA_SEGMENT equ udata_descriptor - GDT_start
 USER_STACK_SEGMENT equ ustack_descriptor - GDT_start
 
+GDT_PHYS_ADDR equ 0x800
+
 GDT_descriptor:
 	dw GDT_end - GDT_start - 1 ; limit (size of GDT)
-	dd GDT_start ; base (address of GDT)
+	dd GDT_PHYS_ADDR ; base (address of GDT)
 
 
 bits 32
@@ -155,6 +154,13 @@ _start:
 	; C++ features such as global constructors and exceptions will require
 	; runtime support to work as well.
 
+
+	; Copy GDT to physical address 0x800
+    cld                             ; ensure forward copy
+    mov esi, GDT_start              ; source
+    mov edi, GDT_PHYS_ADDR          ; destination (0x800)
+    mov ecx, GDT_end - GDT_start    ; size in bytes
+    rep movsb						; copy ecx by byte from [esi] to [edi]
 
 	cli ; Clear interrupt flag to disable interrupts while we set up the GDT
 	lgdt [GDT_descriptor] ; Load the GDT with the lgdt instruction
