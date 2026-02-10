@@ -110,19 +110,22 @@ k_size_t k_print_bin(unsigned int x) {
 }
 
 k_size_t k_print_pretty_size(unsigned int x) {
+	k_size_t result = 0;
 	if (x < 1024) {
-        k_print_uint(x);
-        k_print_str(" B");
+        result += k_print_uint(x);
+        result += k_print_str(" B");
     } else if (x < 1024 * 1024) {
-        k_print_uint(x / 1024);
-        k_print_str(" KiB");
+        result += k_print_uint(x / 1024);
+        result += k_print_str(" KiB");
     } else if (x < 1024 * 1024 * 1024) {
-        k_print_uint(x / (1024 * 1024));
-        k_print_str(" MiB");
+        result += k_print_uint(x / (1024 * 1024));
+        result += k_print_str(" MiB");
     } else {
-        k_print_uint(x / (1024 * 1024 * 1024));
-        k_print_str(" GiB");
+        result += k_print_uint(x / (1024 * 1024 * 1024));
+        result += k_print_str(" GiB");
     }
+
+	return result;
 }
 
 k_size_t k_print_ptr(const void *ptr) {
