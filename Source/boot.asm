@@ -3,12 +3,12 @@
 ; https://wiki.osdev.org/Bare_Bones_with_NASM
 
 ; Declare constants for the multiboot header.
-MBALIGN  equ  1 << 0            ; align loaded modules on page boundaries
-MEMINFO  equ  1 << 1            ; provide memory map
-MBFLAGS  equ  MBALIGN | MEMINFO ; this is the Multiboot 'flag' field
-MAGIC    equ  0x1BADB002        ; 'magic number' lets bootloader find the header
-CHECKSUM equ -(MAGIC + MBFLAGS) ; checksum of above, to prove we are multiboot
-                                ; CHECKSUM + MAGIC + MBFLAGS should be Zero (0)
+MBALIGN  equ  1 << 0            	; align loaded modules on page boundaries
+MEMINFO  equ  1 << 1            	; provide memory map
+MBFLAGS  equ  MBALIGN | MEMINFO 	; this is the Multiboot 'flag' field
+MAGIC    equ  0x1BADB002        	; 'magic number' lets bootloader find the header
+CHECKSUM equ -(MAGIC + MBFLAGS) 	; checksum of above, to prove we are multiboot
+                                	; CHECKSUM + MAGIC + MBFLAGS should be Zero (0)
 
 ; Declare a multiboot header that marks the program as a kernel. These are magic
 ; values that are documented in the multiboot standard. The bootloader will
@@ -34,13 +34,13 @@ align 4
 section .bss
 align 16
 stack_bottom:
-resb 16384 ; 16 KiB is reserved for stack
+resb 16384 							; 16 KiB is reserved for stack
 stack_top:
 
 
 align 16
 u_stack_bottom:
-    resb 8192      ; 8 KiB for user stack
+    resb 8192      					; 8 KiB for user stack
 u_stack_top:
 
 global stack_bottom
@@ -111,8 +111,8 @@ USER_STACK_SEGMENT equ ustack_descriptor - GDT_start
 GDT_PHYS_ADDR equ 0x800
 
 GDT_descriptor:
-	dw GDT_end - GDT_start - 1 ; limit (size of GDT)
-	dd GDT_PHYS_ADDR ; base (address of GDT)
+	dw GDT_end - GDT_start - 1		; limit (size of GDT)
+	dd GDT_PHYS_ADDR				; base (address of GDT)
 
 
 Start_kernel:
@@ -123,7 +123,7 @@ Start_kernel:
 
 	mov ax, KERNEL_STACK_SEGMENT	; set stack segment to kernel stack selector (0x18)
 	mov ss, ax
-	mov esp, stack_top      ; allocated memory top
+	mov esp, stack_top      		; allocated memory top
 
 
 	extern kernel_main
