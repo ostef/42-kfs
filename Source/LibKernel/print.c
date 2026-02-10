@@ -229,7 +229,7 @@ k_size_t k_print_stack(void)
 		uint32_t *ptr = (uint32_t *)esp;
 		result += k_printf("%p %p %p %p\n",
          (void *)ptr[0], (void *)ptr[1], (void *)ptr[2], (void *)ptr[3]);
-		esp += sizeof(uint32_t);
+		esp += sizeof(uint32_t) * 4;
 	}
 	result += k_print_str("Stack top\n\n");
 	return result;
