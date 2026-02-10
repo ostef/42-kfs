@@ -6,6 +6,8 @@
 #include "shell.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
+	k_print_stack();
+
 	k_printf("\x1b[31m");
 
 	if (panic) {
