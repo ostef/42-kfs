@@ -193,7 +193,7 @@ void shell_loop() {
 		} else if (cmd_len >= k_strlen("help") && k_strncmp(cmd, "help", cmd_len) == 0) {
 			shell_print_help();
 		} else if (cmd_len >= k_strlen("stackdump") && k_strncmp(cmd, "stackdump", cmd_len) == 0) {
-			k_printf("@Todo\n");
+			k_print_stack();
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);

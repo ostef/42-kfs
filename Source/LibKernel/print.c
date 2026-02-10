@@ -226,9 +226,23 @@ k_size_t k_print_stack(void)
 	esp = k_get_esp();
 	result += k_print_str("Stack contents (ESP):\n");
 	while (esp < (uint32_t)&stack_top) {
+		char *str = (char *)esp;
 		uint32_t *ptr = (uint32_t *)esp;
-		result += k_printf("%p %p %p %p\n",
-         (void *)ptr[0], (void *)ptr[1], (void *)ptr[2], (void *)ptr[3]);
+
+		result += k_printf(
+			"%p %p %p %p  ",
+        	(void *)ptr[0], (void *)ptr[1], (void *)ptr[2], (void *)ptr[3]
+		);
+
+		for (int i = 0; i < 4 * 4; i += 1) {
+			if (!k_is_print(str[i]) || str[i] == '\n' || str[i] == '\t') {
+				result += k_print_char('.');
+			} else {
+				result += k_print_char(str[i]);
+			}
+		}
+		result += k_print_char('\n');
+
 		esp += sizeof(uint32_t) * 4;
 	}
 	result += k_print_str("Stack top\n\n");
