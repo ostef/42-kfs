@@ -1,3 +1,5 @@
+[bits 32]
+
 ; https://wiki.osdev.org/Bare_Bones_with_NASM
 
 ; Declare constants for the multiboot header.
@@ -112,7 +114,6 @@ GDT_descriptor:
 	dd GDT_start ; base (address of GDT)
 
 
-bits 32
 Start_kernel:
 	mov		ax, DATA_SEGMENT		; set data segments to data selector (0x10)
 	mov		ds, ax
