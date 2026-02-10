@@ -195,3 +195,42 @@ k_size_t k_printf(const char *fmt, ...) {
 
 	return result;
 }
+
+k_size_t k_print_all_stack(int lines)
+{
+	k_size_t top;
+	k_size_t i = 0;
+	k_size_t result = 0;
+
+	top = (k_size_t)&stack_top - sizeof(uint32_t) * 4;
+	result += k_print_str("Stack top:\n");
+	while (top >= (k_size_t)&stack_bottom) {
+		if (lines > 0 && i >= (k_size_t)lines) {
+			break;
+		}
+		uint32_t *ptr = (uint32_t *)top;
+		result += k_printf("%p %p %p %p\n",
+         (void *)ptr[0], (void *)ptr[1], (void *)ptr[2], (void *)ptr[3]);
+		top -= sizeof(uint32_t) * 4;
+		i++;
+	}
+	result += k_print_str("Stack bottom\n");
+	return result;
+}
+
+k_size_t k_print_stack(void)
+{
+	uint32_t	esp;
+	k_size_t	result = 0;
+
+	esp = k_get_esp();
+	result += k_print_str("Stack contents (ESP):\n");
+	while (esp < (uint32_t)&stack_top) {
+		uint32_t *ptr = (uint32_t *)esp;
+		result += k_printf("%p %p %p %p\n",
+         (void *)ptr[0], (void *)ptr[1], (void *)ptr[2], (void *)ptr[3]);
+		esp += sizeof(uint32_t);
+	}
+	result += k_print_str("Stack top\n\n");
+	return result;
+}

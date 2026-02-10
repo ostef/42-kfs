@@ -49,6 +49,9 @@ void k_assertion_failure(
     bool panic
 );
 
+extern void stack_top;
+extern void stack_bottom;
+
 void *k_memset(void *dst, k_byte_t value, k_size_t length);
 void *k_memcpy(void *dst, const void *src, k_size_t length);
 int k_memcmp(const void *a, const void *b, k_size_t length);
@@ -83,5 +86,10 @@ k_size_t k_print_ptr(const void *ptr);
 
 k_size_t k_vprintf(const char *fmt, va_list va);
 k_size_t k_printf(const char *fmt, ...);
+
+uint32_t k_get_esp(void);
+
+k_size_t k_print_all_stack(int lines);
+k_size_t k_print_stack(void);
 
 #endif // LIBKERNEL_H

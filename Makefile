@@ -13,7 +13,8 @@ SOURCE_FILES=boot.asm \
 	shell.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
-	LibKernel/print.c
+	LibKernel/print.c \
+	LibKernel/util.c
 
 OBJECT_FILES=$(addsuffix .o,$(SOURCE_FILES))
 DEP_FILES=$(addsuffix .d,$(SOURCE_FILES))
@@ -29,7 +30,8 @@ LD=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-ld
 GCC=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gcc
 GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 
-GRUB_COMPRESS?=no
+# GRUB_COMPRESS?=no
+GRUB_COMPRESS?=xz
 
 C_FLAGS?=-O0 -g
 C_FLAGS:=$(C_FLAGS) -ffreestanding -Wall -Wextra

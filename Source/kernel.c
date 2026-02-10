@@ -33,6 +33,7 @@ void kernel_main(void) {
 	tty_clear(0);
 
 	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
+	k_print_stack();
 	shell_print_help();
 	shell_loop();
 }
