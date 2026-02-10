@@ -4,6 +4,7 @@
 #include "interrupts.h"
 #include "keyboard.h"
 #include "shell.h"
+#include "memory.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_print_stack();
@@ -42,6 +43,7 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	print_multiboot_info(multiboot_info);
 
 	interrupts_initialize();
+	mem_init_with_multiboot_info(multiboot_info);
 	kb_initialize();
 
 	tty_clear(0);

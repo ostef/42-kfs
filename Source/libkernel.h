@@ -19,6 +19,7 @@ typedef uint64_t k_usize_t;
 typedef int8_t k_sbyte_t;
 typedef uint8_t k_byte_t;
 
+#define KERNEL_LOAD_ADDRESS (2 * 1024 * 1024)
 #define KERNEL_CODE_SEGMENT 8
 #define KERNEL_DATA_SEGMENT 16
 

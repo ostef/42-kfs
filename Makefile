@@ -11,6 +11,7 @@ SOURCE_FILES=boot.asm \
 	interrupt_handlers.asm \
 	keyboard.c \
 	multiboot.c \
+	memory.c \
 	shell.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
