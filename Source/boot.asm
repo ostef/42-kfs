@@ -35,6 +35,16 @@ stack_bottom:
 resb 16384 ; 16 KiB is reserved for stack
 stack_top:
 
+
+align 16
+u_stack_bottom:
+    resb 8192      ; 8 KiB for user stack
+u_stack_top:
+
+global stack_bottom
+global stack_top
+global u_stack_bottom
+global u_stack_top
 ; The linker script specifies _start as the entry point to the kernel and the
 ; bootloader will jump to this position once the kernel has been loaded. It
 ; doesn't make sense to return from this function as the bootloader is gone.
@@ -87,11 +97,15 @@ GDT_start:
 		db 0xF6   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b11110110
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
 		db 0x00   ; base high
-
 GDT_end:
 
 CODE_SEGMENT equ code_descriptor - GDT_start
 DATA_SEGMENT equ data_descriptor - GDT_start
+
+KERNEL_STACK_SEGMENT equ kernel_stack_descriptor - GDT_start
+USER_CODE_SEGMENT equ ucode_descriptor - GDT_start
+USER_DATA_SEGMENT equ udata_descriptor - GDT_start
+USER_STACK_SEGMENT equ ustack_descriptor - GDT_start
 
 GDT_descriptor:
 	dw GDT_end - GDT_start - 1 ; limit (size of GDT)
@@ -104,6 +118,12 @@ Start_kernel:
 	mov		ds, ax
 	mov		ss, ax
 	mov		es, ax
+
+	mov ax, KERNEL_STACK_SEGMENT	; set stack segment to kernel stack selector (0x18)
+	mov ss, ax
+	mov esp, stack_top      ; allocated memory top
+
+
 	extern kernel_main
 	call kernel_main
 
