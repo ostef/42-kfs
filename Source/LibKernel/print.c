@@ -241,10 +241,13 @@ k_size_t k_print_stack(void)
 				result += k_print_char(str[i]);
 			}
 		}
+
 		result += k_print_char('\n');
 
 		esp += sizeof(uint32_t) * 4;
 	}
+
 	result += k_print_str("Stack top\n\n");
+
 	return result;
 }
