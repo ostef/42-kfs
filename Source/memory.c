@@ -298,15 +298,15 @@ void mem_free_physical_memory(void *ptr, int32_t size) {
 // CR0 register:
 // 0 	PE 	Protected Mode Enable 	If 1, system is in protected mode, else, system is in real mode
 // 1 	MP 	Monitor co-processor 	Controls interaction of WAIT/FWAIT instructions with TS flag in CR0
-// 2 	EM 	Emulation 	If set, no x87 floating-point unit present, if clear, x87 FPU present
-// 3 	TS 	Task switched 	Allows saving x87 task context upon a task switch only after x87 instruction used
-// 4 	ET 	Extension type 	On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
-// 5 	NE 	Numeric error 	On the 486 and later, enable internal x87 floating point error reporting when set, else enable PC-style error reporting from the internal floating-point unit using external logic[13]
-// 16 	WP 	Write protect 	When set, the CPU cannot write to read-only pages when privilege level is 0
-// 18 	AM 	Alignment mask 	Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
-// 29 	NW 	Not-write through 	Globally enables/disable write-through caching
-// 30 	CD 	Cache disable 	Globally enables/disable the memory cache
-// 31 	PG 	Paging 	If 1, enable paging and use the § CR3 register, else disable paging.
+// 2 	EM 	Emulation				If set, no x87 floating-point unit present, if clear, x87 FPU present
+// 3 	TS 	Task switched 			Allows saving x87 task context upon a task switch only after x87 instruction used
+// 4 	ET 	Extension type 			On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
+// 5 	NE 	Numeric error 			On the 486 and later, enable internal x87 floating point error reporting when set, else enable PC-style error reporting from the internal floating-point unit using external logic[13]
+// 16 	WP 	Write protect 			When set, the CPU cannot write to read-only pages when privilege level is 0
+// 18 	AM 	Alignment mask 			Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
+// 29 	NW 	Not-write through 		Globally enables/disable write-through caching
+// 30 	CD 	Cache disable 			Globally enables/disable the memory cache
+// 31 	PG 	Paging 					If 1, enable paging and use the § CR3 register, else disable paging.
 void mem_set_paging_enabled(bool enabled) {
 	if (enabled) {
 		k_printf("Enabling paging...\n");
@@ -318,9 +318,9 @@ void mem_set_paging_enabled(bool enabled) {
 	asm volatile("mov %%cr0, %0" : "=r"(cr0));
 
 	if (enabled) {
-		cr0 |= (uint32_t)0x80000000;
+		cr0 |= (uint32_t)(1 << 31);
 	} else {
-		cr0 &= ~(uint32_t)0x80000000;
+		cr0 &= ~(uint32_t)(1 << 31);
 	}
 
 	asm volatile("mov %0, %%cr0" :: "r"(cr0));
