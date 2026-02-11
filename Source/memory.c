@@ -1,6 +1,6 @@
 #include "memory.h"
 
-#define NUM_BLOCKS_PER_ENTRY 1024
+#define NUM_BLOCKS_PER_ENTRY (sizeof(uint32_t) * 8)
 
 static uint32_t g_kernel_size_in_memory;
 static uint32_t g_system_memory;
@@ -217,7 +217,7 @@ void mem_print_physical_memory_map(void) {
 		return;
 	}
 
-	k_printf("Memory map:\n");
+	k_printf("Memory map (%d blocks, %d used blocks):\n", g_num_physical_blocks, g_num_used_physical_blocks);
 
 	uint32_t prev_block = 0;
 	bool prev_block_was_free = is_physical_block_free(prev_block);
