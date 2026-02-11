@@ -11,8 +11,6 @@ static uint32_t g_physical_memory_map_num_elements;
 
 static mem_page_dir_table_t *g_current_page_dir_table;
 
-// static void initialize_virtual_memory();
-
 uint32_t mem_get_used_physical_blocks() {
     return g_num_used_physical_blocks;
 }
@@ -106,6 +104,35 @@ void mark_physical_region_as_free(uint32_t start_addr, uint32_t end_addr) {
     }
 }
 
+static
+uint32_t get_first_free_physical_blocks(int32_t num_blocks) {
+	if (num_blocks <= 0) {
+		return 0;
+	}
+
+	if (g_num_used_physical_blocks >= g_num_physical_blocks) {
+		return 0;
+	}
+
+	for (uint32_t i = 0; i < g_num_physical_blocks; i += 1) {
+		bool all_free = true;
+		for (uint32_t j = 0; j < (uint32_t)num_blocks; j += 1) {
+			if (!is_physical_block_free(i + j)) {
+				all_free = false;
+				break;
+			}
+		}
+
+		if (all_free) {
+			return i;
+		}
+	}
+
+	return 0; // Block 0 is reserved, so it's fine that we return it when no block is free
+}
+
+static void init_virtual_memory();
+
 void mem_init_with_multiboot_info(const multiboot_info_t *info) {
 	k_assert((info->flags & MULTIBOOT_INFO_MEM_MAP) != 0, "Memory map is not present in multiboot info");
 
@@ -181,7 +208,7 @@ void mem_init_with_multiboot_info(const multiboot_info_t *info) {
 
 	mem_print_physical_memory_map();
 
-	// initialize_virtual_memory();
+	init_virtual_memory();
 	k_printf("Initialized memory\n");
 }
 
@@ -210,14 +237,219 @@ void mem_print_physical_memory_map(void) {
 	k_printf("End of memory map\n");
 }
 
-// bool mem_alloc_page_physical(mem_page_table_entry_t *entry);
-// void mem_free_page_physical(mem_page_table_entry_t *entry);
-// mem_page_table_entry_t *mem_get_page_table_entry(mem_page_table_t *table, virt_addr_t addr);
+mem_page_table_entry_t *mem_get_page_table_entry(mem_page_table_t *table, virt_addr_t addr) {
+	if (table) {
+		return &table->entries[addr.page_index];
+	}
+	return NULL;
+}
 
-// void mem_set_paging_enabled(bool enabled);
-// void mem_flush_tlb();
-// void mem_flush_page(virt_addr_t addr);
-// bool mem_change_page_dir_table(mem_page_dir_table_t *table);
-// mem_page_dir_table_t *mem_get_current_page_dir_table();
+mem_page_dir_entry_t *mem_get_page_dir_entry(mem_page_dir_table_t *table, virt_addr_t addr) {
+	if (table) {
+		return &table->entries[addr.directory_index];
+	}
+	return NULL;
+}
 
-// bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
+void *mem_alloc_physical_blocks(int32_t num_blocks) {
+	uint32_t block_index = get_first_free_physical_blocks(num_blocks);
+	if (!block_index) {
+		return NULL;
+	}
+
+	for (int32_t i = 0; i < num_blocks; i += 1) {
+		mark_physical_block_as_used(block_index + i);
+	}
+
+	void *ptr = (void *)get_physical_block_addr(block_index);
+	k_printf("Allocated %d physical block(s): %p\n", num_blocks, ptr);
+
+	return ptr;
+}
+
+void mem_free_physical_blocks(void *block, int32_t num_blocks) {
+	if (!block || num_blocks <= 0) {
+		return;
+	}
+
+	uint32_t block_index = get_physical_block_index_of_addr((uint32_t)block);
+	k_printf("Freeing %d block(s) at %p (index %u)\n", num_blocks, block, block_index);
+	k_assert(get_physical_block_addr(block_index) == (uint32_t)block, "Block does not point to the start of a physical block");
+
+	// @Todo: ensure we cannot mark reserved blocks as free
+	for (int32_t i = 0; i < num_blocks; i += 1) {
+		k_assert(!is_physical_block_free(block_index), "Double free");
+		mark_physical_block_as_free(block_index + i);
+	}
+}
+
+void *mem_alloc_physical_memory(int32_t size) {
+	int32_t num_blocks = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
+
+	return mem_alloc_physical_blocks(num_blocks);
+}
+
+void mem_free_physical_memory(void *ptr, int32_t size) {
+	int32_t num_blocks = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
+
+	mem_free_physical_blocks(ptr, num_blocks);
+}
+
+// CR0 register:
+// 0 	PE 	Protected Mode Enable 	If 1, system is in protected mode, else, system is in real mode
+// 1 	MP 	Monitor co-processor 	Controls interaction of WAIT/FWAIT instructions with TS flag in CR0
+// 2 	EM 	Emulation 	If set, no x87 floating-point unit present, if clear, x87 FPU present
+// 3 	TS 	Task switched 	Allows saving x87 task context upon a task switch only after x87 instruction used
+// 4 	ET 	Extension type 	On the 386, it allowed to specify whether the external math coprocessor was an 80287 or 80387
+// 5 	NE 	Numeric error 	On the 486 and later, enable internal x87 floating point error reporting when set, else enable PC-style error reporting from the internal floating-point unit using external logic[13]
+// 16 	WP 	Write protect 	When set, the CPU cannot write to read-only pages when privilege level is 0
+// 18 	AM 	Alignment mask 	Alignment check enabled if AM set, AC flag (in EFLAGS register) set, and privilege level is 3
+// 29 	NW 	Not-write through 	Globally enables/disable write-through caching
+// 30 	CD 	Cache disable 	Globally enables/disable the memory cache
+// 31 	PG 	Paging 	If 1, enable paging and use the § CR3 register, else disable paging.
+void mem_set_paging_enabled(bool enabled) {
+	if (enabled) {
+		k_printf("Enabling paging...\n");
+	} else {
+		k_printf("Disabling paging...\n");
+	}
+
+	uint32_t cr0;
+	asm volatile("mov %%cr0, %0" : "=r"(cr0));
+
+	if (enabled) {
+		cr0 |= (uint32_t)0x80000000;
+	} else {
+		cr0 &= ~(uint32_t)0x80000000;
+	}
+
+	asm volatile("mov %0, %%cr0" :: "r"(cr0));
+
+	if (enabled) {
+		k_printf("Enabled paging\n");
+	} else {
+		k_printf("Disabled paging\n");
+	}
+}
+
+void mem_flush_tlb() {
+	k_printf("TLB flush\n");
+
+	asm volatile(
+		"mov %%cr0, %%eax\n"
+		"mov %%eax, %%cr0\n"
+		: : : "eax", "memory"
+	);
+}
+
+void mem_flush_page(virt_addr_t addr) {
+	k_printf("Page flush: %p\n", addr);
+
+	asm volatile(
+		"cli\n"
+		"invlpg (%0)\n"
+		"sti\n" : : "r"(addr)
+	);
+}
+
+bool mem_change_page_dir_table(mem_page_dir_table_t *table) {
+	if (!table) {
+		return false;
+	}
+
+	k_assert((((uint32_t)table) % MEM_PAGE_SIZE) == 0, "Table pointer is not page aligned");
+
+	k_printf("Changing page directory table to %p\n", table);
+	g_current_page_dir_table = table;
+	asm volatile("mov %0, %%cr3" :: "r"(table));
+
+	return true;
+}
+
+mem_page_dir_table_t *mem_get_current_page_dir_table() {
+	return g_current_page_dir_table;
+}
+
+bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
+	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
+	mem_page_dir_entry_t *dir = mem_get_page_dir_entry(dir_table, virt_addr);
+	if (!dir->is_present_in_physical_memory) {
+		mem_page_table_t *table = (mem_page_table_t *)mem_alloc_physical_blocks(1);
+		if (!table) {
+			return false;
+		}
+
+		k_memset(table, 0, sizeof(*table));
+
+		dir->page_table_physical_addr_4KiB = (uint32_t)table / MEM_PAGE_SIZE;
+		dir->is_writable = 1;
+		dir->is_present_in_physical_memory = 1;
+	}
+
+	mem_page_table_t *table = (mem_page_table_t *)(dir->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
+	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
+
+	entry->is_present_in_physical_memory = 1;
+	entry->physical_addr_4KiB = physical_addr / MEM_PAGE_SIZE;
+
+	return true;
+}
+
+static
+void init_virtual_memory() {
+	mem_page_table_t *identity_table = (mem_page_table_t *)mem_alloc_physical_memory(sizeof(mem_page_table_t));
+	k_assert(identity_table != NULL, "Physical memory allocation failure");
+
+	mem_page_table_t *kernel_table = (mem_page_table_t *)mem_alloc_physical_memory(sizeof(mem_page_table_t));
+	k_assert(kernel_table != NULL, "Physical memory allocation failure");
+
+	k_memset(identity_table, 0, sizeof(*identity_table));
+	k_memset(kernel_table, 0, sizeof(*kernel_table));
+
+	// Identity map the first 4 MiB of virtual address space (virt addr == phys addr)
+	uint32_t addr = 0;
+	for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
+		mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_table, make_virt_addr(addr));
+		k_assert(entry != NULL, "");
+
+		entry->is_present_in_physical_memory = 1;
+		entry->physical_addr_4KiB = addr / MEM_PAGE_SIZE;
+
+		addr += MEM_PAGE_SIZE;
+	}
+
+	// Map the kernel (first 4 MiB) to virtual address space 3 GiB
+	uint32_t phys_addr = 0;
+	uint32_t virt_addr = 0xc0000000;
+	for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
+		mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_table, make_virt_addr(virt_addr));
+		k_assert(entry != NULL, "");
+
+		entry->is_present_in_physical_memory = 1;
+		entry->physical_addr_4KiB = phys_addr / MEM_PAGE_SIZE;
+
+		virt_addr += MEM_PAGE_SIZE;
+		phys_addr += MEM_PAGE_SIZE;
+	}
+
+	// Create a directory table
+	mem_page_dir_table_t *dir_table = (mem_page_dir_table_t *)mem_alloc_physical_memory(sizeof(mem_page_dir_table_t));
+	k_assert(dir_table != NULL, "Memory allocation failure");
+
+	k_memset(dir_table, 0, sizeof(*dir_table));
+
+	mem_page_dir_entry_t *identity_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(0));
+	identity_dir->is_present_in_physical_memory = 1;
+	identity_dir->is_writable = 1;
+	identity_dir->page_table_physical_addr_4KiB = (uint32_t)identity_table / MEM_PAGE_SIZE;
+
+	mem_page_dir_entry_t *kernel_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(0xc0000000));
+	kernel_dir->is_present_in_physical_memory = 1;
+	kernel_dir->is_writable = 1;
+	kernel_dir->page_table_physical_addr_4KiB = (uint32_t)kernel_table / MEM_PAGE_SIZE;
+
+	k_assert(identity_dir != kernel_dir, "");
+
+	mem_change_page_dir_table(dir_table);
+	mem_set_paging_enabled(true);
+}

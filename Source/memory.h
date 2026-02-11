@@ -11,6 +11,11 @@ uint32_t mem_get_total_physical_blocks(void);
 uint32_t mem_get_remaining_physical_memory(void);
 uint32_t mem_get_total_physical_memory(void);
 
+void *mem_alloc_physical_blocks(int32_t num_blocks);
+void mem_free_physical_blocks(void *block, int32_t num_blocks);
+void *mem_alloc_physical_memory(int32_t size);
+void mem_free_physical_memory(void *ptr, int32_t size);
+
 void mem_print_physical_memory_map(void);
 
 // http://wiki.osdev.org/Paging
@@ -69,9 +74,8 @@ typedef struct mem_page_dir_table_t {
     mem_page_dir_entry_t entries[MEM_NUM_PAGE_DIR_TABLE_ENTRIES];
 } mem_page_dir_table_t;
 
-bool mem_alloc_page_physical(mem_page_table_entry_t *entry);
-void mem_free_page_physical(mem_page_table_entry_t *entry);
 mem_page_table_entry_t *mem_get_page_table_entry(mem_page_table_t *table, virt_addr_t addr);
+mem_page_dir_entry_t *mem_get_page_dir_entry(mem_page_dir_table_t *table, virt_addr_t addr);
 
 void mem_set_paging_enabled(bool enabled);
 void mem_flush_tlb(void);
