@@ -3,6 +3,7 @@
 #include "tty.h"
 #include "vga.h" // Ugh... We shouldn't need VGA specific stuff here...
 #include "ioport.h" // For QEMU specific shutdown command
+#include "memory.h"
 
 static char g_shell_text_buffer[200];
 static int g_shell_text_length;
@@ -159,7 +160,7 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, shutdown, reboot\n");
+	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, shutdown, reboot\n");
 }
 
 void shell_loop() {
@@ -202,6 +203,8 @@ void shell_loop() {
 				k_printf("Entry %i at %p: %p %p\n", i / 2, gdt + i, gdt[i], gdt[i + 1]);
 				i += 2;
 			}
+		} else if (cmd_len >= k_strlen("mmapdump") && k_strncmp(cmd, "mmapdump", cmd_len) == 0) {
+			mem_print_physical_memory_map();
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);
