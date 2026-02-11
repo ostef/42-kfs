@@ -422,7 +422,7 @@ void init_virtual_memory() {
 	uint32_t phys_addr = 0;
 	uint32_t virt_addr = 0xc0000000;
 	for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
-		mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_table, make_virt_addr(virt_addr));
+		mem_page_table_entry_t *entry = mem_get_page_table_entry(kernel_table, make_virt_addr(virt_addr));
 		k_assert(entry != NULL, "");
 
 		entry->is_present_in_physical_memory = 1;
@@ -452,4 +452,13 @@ void init_virtual_memory() {
 
 	mem_change_page_dir_table(dir_table);
 	mem_set_paging_enabled(true);
+
+	{
+		uint32_t value = 0xbadcafe;
+		uint32_t *addr1 = &value;
+		uint32_t *addr2 = (uint32_t *)((uint32_t)addr1 + 0xc0000000);
+
+		k_assert(*addr1 == 0xbadcafe, "Memory map test failed");
+		k_assert(*addr2 == 0xbadcafe, "Memory map test failed");
+	}
 }
