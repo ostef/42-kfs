@@ -19,7 +19,6 @@ typedef uint64_t k_usize_t;
 typedef int8_t k_sbyte_t;
 typedef uint8_t k_byte_t;
 
-#define KERNEL_LOAD_ADDRESS (2 * 1024 * 1024)
 #define KERNEL_CODE_SEGMENT 8
 #define KERNEL_DATA_SEGMENT 16
 
@@ -36,6 +35,8 @@ typedef uint8_t k_byte_t;
 #define k_array_count(arr) (sizeof(arr) / sizeof(*(arr)))
 
 #define k_pseudo_breakpoint() asm volatile("1: jmp 1b")
+
+#define k_align_forward(x, align) ((((x) + (align) - 1) / (align)) * (align))
 
 // Assertions and debugging
 #define k_assert(expr, msg) do { if (!(expr)) { k_assertion_failure(K_STRINGIFY(expr), msg, __func__, __FILE__, __LINE__, false); } } while(0)

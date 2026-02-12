@@ -4,6 +4,9 @@
 #include "libkernel.h"
 #include "multiboot.h"
 
+uintptr_t get_kernel_start_phys_addr(void);
+uintptr_t get_kernel_end_phys_addr(void);
+
 void mem_init_with_multiboot_info(const multiboot_info_t *info);
 
 uint32_t mem_get_used_physical_blocks(void);

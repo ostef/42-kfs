@@ -18,6 +18,8 @@ SECTIONS {
 	   chosen as a safer option than the traditional 1M. */
 	. = 2M;
 
+	kernel_start = .;
+
 	/* First put the multiboot header, as it is required to be put very early
 	   in the image or the bootloader won't recognize the file format.
 	   Next we'll put the .text section. */
@@ -44,4 +46,6 @@ SECTIONS {
 
 	/* The compiler may produce other sections, by default it will put them in
 	   a segment with the same name. Simply add stuff here as needed. */
+
+	kernel_end = .;
 }

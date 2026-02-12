@@ -2,7 +2,18 @@
 
 #define NUM_BLOCKS_PER_ENTRY (sizeof(uint32_t) * 8)
 
-static uint32_t g_kernel_size_in_memory;
+// Set by the linker.ld script
+extern uint8_t kernel_start;
+extern uint8_t kernel_end;
+
+uintptr_t get_kernel_start_phys_addr(void) {
+	return (uintptr_t)&kernel_start;
+}
+
+uintptr_t get_kernel_end_phys_addr(void) {
+	return (uintptr_t)&kernel_end;
+}
+
 static uint32_t g_system_memory;
 static uint32_t g_num_used_physical_blocks;
 static uint32_t g_num_physical_blocks;
@@ -156,10 +167,9 @@ void mem_init_with_multiboot_info(const multiboot_info_t *info) {
 	g_physical_memory_map_num_elements = g_num_physical_blocks / NUM_BLOCKS_PER_ENTRY + ((g_num_physical_blocks % NUM_BLOCKS_PER_ENTRY) != 0);
 	uint32_t memory_map_size = g_physical_memory_map_num_elements * sizeof(uint32_t);
 
-	g_kernel_size_in_memory = 1 * 1024 * 1024; // Assume at most 1 MiB, but we should get this value at boot time somehow
-	g_physical_memory_map = (uint32_t *)(KERNEL_LOAD_ADDRESS + g_kernel_size_in_memory);
+	g_physical_memory_map = (uint32_t *)k_align_forward(get_kernel_end_phys_addr(), 16);
 
-	k_printf("Kernel loaded at %p\n", (uintptr_t)KERNEL_LOAD_ADDRESS);
+	k_printf("Kernel loaded at %p - %p\n", get_kernel_start_phys_addr(), get_kernel_end_phys_addr());
 	k_printf("System memory: %n, %u blocks\n", g_system_memory, g_num_physical_blocks);
 	k_printf("Memory map addr: %p, %u entries\n", g_physical_memory_map, g_physical_memory_map_num_elements);
 
