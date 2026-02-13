@@ -45,6 +45,7 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 
 	interrupts_initialize();
 	mem_init_with_multiboot_info(multiboot_info);
+	allocators_init();
 	kb_initialize();
 
 	tty_clear(0);
