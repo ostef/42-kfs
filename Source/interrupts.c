@@ -48,38 +48,38 @@ void idt_load_register()  {
 }
 
 void interrupts_initialize() {
-    idt_set_gate(0, (uint32_t)isr0);
-    idt_set_gate(1, (uint32_t)isr1);
-    idt_set_gate(2, (uint32_t)isr2);
-    idt_set_gate(3, (uint32_t)isr3);
-    idt_set_gate(4, (uint32_t)isr4);
-    idt_set_gate(5, (uint32_t)isr5);
-    idt_set_gate(6, (uint32_t)isr6);
-    idt_set_gate(7, (uint32_t)isr7);
-    idt_set_gate(8, (uint32_t)isr8);
-    idt_set_gate(9, (uint32_t)isr9);
-    idt_set_gate(10, (uint32_t)isr10);
-    idt_set_gate(11, (uint32_t)isr11);
-    idt_set_gate(12, (uint32_t)isr12);
-    idt_set_gate(13, (uint32_t)isr13);
-    idt_set_gate(14, (uint32_t)isr14);
-    idt_set_gate(15, (uint32_t)isr15);
-    idt_set_gate(16, (uint32_t)isr16);
-    idt_set_gate(17, (uint32_t)isr17);
-    idt_set_gate(18, (uint32_t)isr18);
-    idt_set_gate(19, (uint32_t)isr19);
-    idt_set_gate(20, (uint32_t)isr20);
-    idt_set_gate(21, (uint32_t)isr21);
-    idt_set_gate(22, (uint32_t)isr22);
-    idt_set_gate(23, (uint32_t)isr23);
-    idt_set_gate(24, (uint32_t)isr24);
-    idt_set_gate(25, (uint32_t)isr25);
-    idt_set_gate(26, (uint32_t)isr26);
-    idt_set_gate(27, (uint32_t)isr27);
-    idt_set_gate(28, (uint32_t)isr28);
-    idt_set_gate(29, (uint32_t)isr29);
-    idt_set_gate(30, (uint32_t)isr30);
-    idt_set_gate(31, (uint32_t)isr31);
+	idt_set_gate(0, (uint32_t)isr0);
+	idt_set_gate(1, (uint32_t)isr1);
+	idt_set_gate(2, (uint32_t)isr2);
+	idt_set_gate(3, (uint32_t)isr3);
+	idt_set_gate(4, (uint32_t)isr4);
+	idt_set_gate(5, (uint32_t)isr5);
+	idt_set_gate(6, (uint32_t)isr6);
+	idt_set_gate(7, (uint32_t)isr7);
+	idt_set_gate(8, (uint32_t)isr8);
+	idt_set_gate(9, (uint32_t)isr9);
+	idt_set_gate(10, (uint32_t)isr10);
+	idt_set_gate(11, (uint32_t)isr11);
+	idt_set_gate(12, (uint32_t)isr12);
+	idt_set_gate(13, (uint32_t)isr13);
+	idt_set_gate(14, (uint32_t)isr14);
+	idt_set_gate(15, (uint32_t)isr15);
+	idt_set_gate(16, (uint32_t)isr16);
+	idt_set_gate(17, (uint32_t)isr17);
+	idt_set_gate(18, (uint32_t)isr18);
+	idt_set_gate(19, (uint32_t)isr19);
+	idt_set_gate(20, (uint32_t)isr20);
+	idt_set_gate(21, (uint32_t)isr21);
+	idt_set_gate(22, (uint32_t)isr22);
+	idt_set_gate(23, (uint32_t)isr23);
+	idt_set_gate(24, (uint32_t)isr24);
+	idt_set_gate(25, (uint32_t)isr25);
+	idt_set_gate(26, (uint32_t)isr26);
+	idt_set_gate(27, (uint32_t)isr27);
+	idt_set_gate(28, (uint32_t)isr28);
+	idt_set_gate(29, (uint32_t)isr29);
+	idt_set_gate(30, (uint32_t)isr30);
+	idt_set_gate(31, (uint32_t)isr31);
 
 	// https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interrupt_Controller
 	// The PIC is the microcontroller that handles incoming interrupts from hardware internal and external peripherals
@@ -109,21 +109,21 @@ void interrupts_initialize() {
 	ioport_write_byte(PIC2_DATA, 0);
 
 	idt_set_gate(PIC1_VECTOR_OFFSET + 0, (uint32_t)irq0);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 1, (uint32_t)irq1);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 2, (uint32_t)irq2);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 3, (uint32_t)irq3);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 4, (uint32_t)irq4);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 5, (uint32_t)irq5);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 6, (uint32_t)irq6);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 7, (uint32_t)irq7);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 8, (uint32_t)irq8);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 9, (uint32_t)irq9);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 10, (uint32_t)irq10);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 11, (uint32_t)irq11);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 12, (uint32_t)irq12);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 13, (uint32_t)irq13);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 14, (uint32_t)irq14);
-    idt_set_gate(PIC1_VECTOR_OFFSET + 15, (uint32_t)irq15);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 1, (uint32_t)irq1);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 2, (uint32_t)irq2);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 3, (uint32_t)irq3);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 4, (uint32_t)irq4);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 5, (uint32_t)irq5);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 6, (uint32_t)irq6);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 7, (uint32_t)irq7);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 8, (uint32_t)irq8);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 9, (uint32_t)irq9);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 10, (uint32_t)irq10);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 11, (uint32_t)irq11);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 12, (uint32_t)irq12);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 13, (uint32_t)irq13);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 14, (uint32_t)irq14);
+	idt_set_gate(PIC1_VECTOR_OFFSET + 15, (uint32_t)irq15);
 
 	idt_load_register();
 
@@ -131,55 +131,56 @@ void interrupts_initialize() {
 }
 
 static const char *g_exception_messages[] = {
-    "Division By Zero",
-    "Debug",
-    "Non Maskable Interrupt",
-    "Breakpoint",
-    "Into Detected Overflow",
-    "Out of Bounds",
-    "Invalid Opcode",
-    "No Coprocessor",
+	"Division By Zero",
+	"Debug",
+	"Non Maskable Interrupt",
+	"Breakpoint",
+	"Into Detected Overflow",
+	"Out of Bounds",
+	"Invalid Opcode",
+	"No Coprocessor",
 
-    "Double Fault",
-    "Coprocessor Segment Overrun",
-    "Bad TSS",
-    "Segment Not Present",
-    "Stack Fault",
-    "General Protection Fault",
-    "Page Fault",
-    "Unknown Interrupt",
+	"Double Fault",
+	"Coprocessor Segment Overrun",
+	"Bad TSS",
+	"Segment Not Present",
+	"Stack Fault",
+	"General Protection Fault",
+	"Page Fault",
+	"Unknown Interrupt",
 
-    "Coprocessor Fault",
-    "Alignment Check",
-    "Machine Check",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
+	"Coprocessor Fault",
+	"Alignment Check",
+	"Machine Check",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
 
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved",
-    "Reserved"
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved",
+	"Reserved"
 };
 
 void handle_isr(isr_registers_t registers) {
-    if (registers.interrupt_number < (uint32_t)k_array_count(g_exception_messages)) {
-        k_printf("Received interrupt %u, error code %x: %s\n", registers.interrupt_number, registers.error_code, g_exception_messages[registers.interrupt_number]);
-    } else {
-        k_printf("Received interrupt %u, error code %x\n", registers.interrupt_number, registers.error_code);
-    }
+	if (registers.interrupt_number < (uint32_t)k_array_count(g_exception_messages)) {
+		k_printf("Received interrupt %u, error code %x: %s\n", registers.interrupt_number, registers.error_code, g_exception_messages[registers.interrupt_number]);
+	} else {
+		k_printf("Received interrupt %u, error code %x\n", registers.interrupt_number, registers.error_code);
+	}
 
-    k_pseudo_breakpoint();
+	k_pseudo_breakpoint();
 }
 
 void isr_register_handler(uint8_t index, isr_handler_t handler) {
 	g_irq_handlers[index] = handler;
+	k_printf("Registered handler %p for IRQ %d\n", handler, index);
 }
 
 // https://wiki.osdev.org/8259_PIC
@@ -190,11 +191,11 @@ uint16_t get_pic_in_service_register() {
 	uint8_t pic1 = ioport_read_byte(PIC1_CMD);
 	uint8_t pic2 = ioport_read_byte(PIC2_CMD);
 
-	return ((uint16_t)pic2 < 8) | ((uint16_t)pic1);
+	return ((uint16_t)pic2 << 8) | ((uint16_t)pic1);
 }
 
 void handle_irq(isr_registers_t registers) {
-    // Handle spurious "fake" IRQs. See https://wiki.osdev.org/8259_PIC#Spurious_IRQs
+	// Handle spurious "fake" IRQs. See https://wiki.osdev.org/8259_PIC#Spurious_IRQs
 	uint8_t pic_interrupt_number = registers.interrupt_number - PIC1_VECTOR_OFFSET;
 	if (pic_interrupt_number == 7 || pic_interrupt_number == 15) {
 		uint16_t pic_interrupt_flag = 1 << (uint16_t)pic_interrupt_number;
