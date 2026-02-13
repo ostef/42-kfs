@@ -57,5 +57,42 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	// vfree(ptr);
 
 	shell_print_help();
+
+	uint8_t *ptr = kmalloc(10);
+	k_size_t size = ksize(ptr);
+	*ptr = 'a';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	ptr = kmalloc(10);
+	size = ksize(ptr);
+	*ptr = 'a';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	kfree(ptr);
+	ptr = kmalloc(10);
+	size = ksize(ptr);
+	*ptr = 'b';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	ptr = kmalloc(100);
+	size = ksize(ptr);
+	*ptr = 'a';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	ptr = kmalloc(5000);
+	size = ksize(ptr);
+	*ptr = 'Z';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	kfree(ptr);
+
+	ptr = kmalloc(6000);
+	size = ksize(ptr);
+	*ptr = 'E';
+	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+
+	ptr = kmalloc(1024 * 1024);
+	k_printf("%p\n", ptr);
+
 	shell_loop();
 }

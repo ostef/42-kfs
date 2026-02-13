@@ -39,6 +39,10 @@ typedef uint8_t k_byte_t;
 #define k_align_forward(x, align) ((((x) + (align) - 1) / (align)) * (align))
 
 // Assertions and debugging
+#define K_STATIC_ASSERT3(expr, line) typedef char static_assert_##line[(expr) ? 1 : -1]
+#define K_STATIC_ASSERT2(expr, line) K_STATIC_ASSERT3(expr, line)
+#define k_static_assert(expr) K_STATIC_ASSERT2(expr, __LINE__)
+
 #define k_assert(expr, msg) do { if (!(expr)) { k_assertion_failure(K_STRINGIFY(expr), msg, __func__, __FILE__, __LINE__, false); } } while(0)
 #define k_panic(msg) do { k_assertion_failure("", msg, __func__, __FILE__, __LINE__, true); } while(0)
 
