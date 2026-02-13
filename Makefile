@@ -12,6 +12,7 @@ SOURCE_FILES=boot.asm \
 	keyboard.c \
 	multiboot.c \
 	memory.c \
+	alloc.c \
 	shell.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \
