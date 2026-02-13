@@ -161,7 +161,7 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, allocdump, shutdown, reboot\n");
+	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, allocdump, shutdown\n");
 }
 
 void shell_loop() {
@@ -211,9 +211,6 @@ void shell_loop() {
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);
-		} else if (cmd_len >= k_strlen("reboot") && k_strncmp(cmd, "reboot", cmd_len) == 0) {
-			k_printf("Rebooting\n");
-			return;
 		} else if (cmd_len > 0) {
 			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
 		}
