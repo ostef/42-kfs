@@ -36,6 +36,7 @@ GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 
 # GRUB_COMPRESS?=no
 GRUB_COMPRESS?=xz
+GDB_PORT?=1234
 
 C_FLAGS?=-O0 -g
 C_FLAGS:=$(C_FLAGS) -ffreestanding -Wall -Wextra
@@ -47,6 +48,9 @@ all: $(TARGET_ISO)
 
 run: $(TARGET_ISO)
 	qemu-system-i386 -cdrom $(TARGET_ISO) -serial stdio -no-reboot -d cpu_reset
+
+rund: $(TARGET_ISO)
+	qemu-system-i386 -S -gdb tcp::$(GDB_PORT) -cdrom $(TARGET_ISO) -serial stdio -no-reboot -d cpu_reset
 
 $(TARGET_ISO): $(TARGET)
 	cp $(TARGET) $(SYSTEM_DIR)/boot/pantheon
@@ -137,4 +141,4 @@ $(GDB): $(GDB_SRC)
 	make -C $(GDB_BUILD) -j $(NUM_JOBS) all-gdb
 	make -C $(GDB_BUILD) install-gdb
 
-.PHONY: all toolchain clean fclean re
+.PHONY: all toolchain clean fclean re run rund

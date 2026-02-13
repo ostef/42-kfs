@@ -1,0 +1,26 @@
+{
+	"configurations": [
+		{
+			"name": "(gdb) Attach",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/kernel.bin",
+			"cwd": "${workspaceFolder}",
+			"MIMode": "gdb",
+			"miDebuggerPath": "/usr/bin/gdb",
+			"miDebuggerServerAddress": "localhost:1234",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				},
+				{
+					"description": "Set Disassembly Flavor to Intel",
+					"text": "-gdb-set disassembly-flavor intel",
+					"ignoreFailures": true
+				}
+			]
+		}
+	]
+}
