@@ -406,8 +406,8 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 	bool should_reset_paging = false;
 
 	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
-	mem_page_dir_entry_t *dir = mem_get_page_dir_entry(dir_table, virt_addr);
-	if (!dir->is_present_in_physical_memory) {
+	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
+	if (!dir_entry->is_present_in_physical_memory) {
 		// Need to allocate a new page, so make sure paging is disabled and we can
 		// access physical addresses as is
 		mem_set_paging_enabled(false);
@@ -421,12 +421,12 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 
 		k_memset(table, 0, sizeof(mem_page_table_t));
 
-		dir->page_table_physical_addr_4KiB = (uint32_t)table / MEM_PAGE_SIZE;
-		dir->is_writable = 1;
-		dir->is_present_in_physical_memory = 1;
+		dir_entry->page_table_physical_addr_4KiB = (uint32_t)table / MEM_PAGE_SIZE;
+		dir_entry->is_writable = 1;
+		dir_entry->is_present_in_physical_memory = 1;
 	}
 
-	mem_page_table_t *table = (mem_page_table_t *)(dir->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
+	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
 	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
 
 	entry->is_present_in_physical_memory = 1;
@@ -435,6 +435,25 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 	if (should_reset_paging) {
 		mem_set_paging_enabled(paging_was_enabled);
 	}
+
+	return true;
+}
+
+bool mem_unmap_page(virt_addr_t virt_addr) {
+	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
+	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
+	if (!dir_entry->is_present_in_physical_memory) {
+		return false;
+	}
+
+	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
+	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
+	if (!entry->is_present_in_physical_memory) {
+		return false;
+	}
+
+	entry->is_present_in_physical_memory = 0;
+	entry->physical_addr_4KiB = 0;
 
 	return true;
 }
