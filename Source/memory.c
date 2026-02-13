@@ -455,6 +455,7 @@ bool mem_unmap_page(virt_addr_t virt_addr) {
 	if (!entry->is_present_in_physical_memory) {
 		return false;
 	}
+	mem_free_physical_blocks(entry->physical_addr_4KiB, 1);
 
 	entry->is_present_in_physical_memory = 0;
 	entry->physical_addr_4KiB = 0;
