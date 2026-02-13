@@ -5,6 +5,7 @@
 #include "multiboot.h"
 
 #define KERNEL_VIRT_START 0xc0000000
+#define KERNEL_VIRT_END 0xc0400000
 
 uintptr_t get_kernel_start_phys_addr(void);
 uintptr_t get_kernel_end_phys_addr(void);
@@ -91,6 +92,8 @@ bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
+bool mem_unmap_page(virt_addr_t virt_addr);
+
 
 void *kbrk(k_size_t increment);
 

@@ -51,6 +51,11 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	tty_clear(0);
 
 	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
+	// uint32_t *ptr = vmalloc(10);
+	// k_printf("Allocated virtual memory at %p\n", ptr);
+	// k_printf("Size %d\n", vsize(ptr));
+	// vfree(ptr);
+
 	shell_print_help();
 	shell_loop();
 }
