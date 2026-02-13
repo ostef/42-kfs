@@ -40,20 +40,47 @@ void *vmalloc(k_size_t size)
 	vmalloc_header_t *header = (vmalloc_header_t *)virt_addr_first_page;
 	header->size = size;
 	header->next = NULL;
+	header->prev = NULL;
 
-	if (!g_vmalloc_last_alloc) {
-		g_vmalloc_heap = header;
-		g_vmalloc_last_alloc = header;
+	if (g_vmalloc_last_alloc) {
+		header->prev = g_vmalloc_last_alloc;
+		g_vmalloc_last_alloc->next = header;
 	}
 	else {
-		g_vmalloc_last_alloc->next = header;
+		g_vmalloc_heap = header;
+		g_vmalloc_last_alloc = header;
 	}
 
 	return (void *)(header + 1);
 }
 
 
-void vfree(void *ptr);
+void vfree(void *ptr)
+{
+	vmalloc_header_t *prev = NULL;
+	vmalloc_header_t *next = NULL;
+	if (!ptr) {
+		return;
+	}
+
+	vmalloc_header_t *header = (vmalloc_header_t *)ptr - 1;
+	prev = header->prev;
+	next = header->next;
+
+	if (g_vmalloc_last_alloc == header) {
+		g_vmalloc_last_alloc = NULL;
+	}
+	if (prev) {
+		prev->next = next;
+	}
+	if (next) {
+		next->prev = prev;
+	}
+
+	//deallocate physical memory + unmap pages
+
+	return;
+}
 
 k_size_t vsize(void *ptr)
 {
