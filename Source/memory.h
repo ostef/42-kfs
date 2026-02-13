@@ -70,8 +70,6 @@ typedef struct mem_page_dir_entry_t {
 #define MEM_NUM_PAGE_TABLE_ENTRIES 1024
 #define MEM_NUM_PAGE_DIR_TABLE_ENTRIES 1024
 #define MEM_PAGE_SIZE 4096
-#define MEM_PAGE_TABLE_ADDR_RANGE (MEM_PAGE_SIZE * MEM_NUM_PAGE_TABLE_ENTRIES)
-#define MEM_PAGE_DIR_TABLE_ADDR_RANGE (MEM_PAGE_TABLE_ADDR_RANGE * Mem_NumPageDirectoryTableEntries)
 
 typedef struct mem_page_table_t {
     mem_page_table_entry_t entries[MEM_NUM_PAGE_TABLE_ENTRIES];

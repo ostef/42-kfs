@@ -400,7 +400,11 @@ mem_page_dir_table_t *mem_get_current_page_dir_table() {
 }
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
-	k_printf("Mapping %p to %p\n", physical_addr, virt_addr);
+	// if (physical_addr == *(uint32_t *)&virt_addr) {
+	// 	k_printf("Identity mapping %p\n", physical_addr);
+	// } else {
+	// 	k_printf("Mapping %p to %p\n", physical_addr, virt_addr);
+	// }
 
 	bool paging_was_enabled = g_paging_enabled;
 	bool should_reset_paging = false;

@@ -3,7 +3,9 @@
 
 #include "memory.h"
 
-void allocators_init();
+#define KMALLOC_TOTAL_CAPACITY (4 * 1024 * 1024)
+
+void allocators_init(void);
 
 void *kmalloc(k_size_t size);
 void kfree(void *ptr);
@@ -21,5 +23,7 @@ void *vmalloc(k_size_t size);
 void vfree(void *ptr);
 k_size_t vsize(void *ptr);
 void *vbrk(k_size_t increment);
+
+void allocators_print_info(void);
 
 #endif // ALLOC_H
