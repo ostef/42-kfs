@@ -34,7 +34,7 @@ typedef uint8_t k_byte_t;
 
 #define k_array_count(arr) (sizeof(arr) / sizeof(*(arr)))
 
-#define k_pseudo_breakpoint() asm volatile("1: jmp 1b")
+#define k_pseudo_breakpoint() while (true) { asm volatile("hlt"); }
 
 #define k_align_forward(x, align) ((((x) + (align) - 1) / (align)) * (align))
 
