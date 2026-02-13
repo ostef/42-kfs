@@ -115,6 +115,17 @@ void mark_physical_region_as_free(uint32_t start_addr, uint32_t end_addr) {
     }
 }
 
+uint32_t get_first_free_physical_block_from(uint32_t start_index)
+{
+	for (uint32_t i = start_index; i < g_num_physical_blocks; i += 1) {
+		if (is_physical_block_free(i)) {
+			return i;
+		}
+	}
+
+	return 0; // Block 0 is reserved, so it's fine that we return it when no block is free
+}
+
 static
 uint32_t get_first_free_physical_blocks(int32_t num_blocks) {
 	if (num_blocks <= 0) {

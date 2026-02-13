@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "shell.h"
 #include "memory.h"
+#include "alloc.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_print_stack();

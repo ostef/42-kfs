@@ -21,6 +21,8 @@ void mem_free_physical_memory(void *ptr, int32_t size);
 
 void mem_print_physical_memory_map(void);
 
+uint32_t get_first_free_physical_block_from(uint32_t start_index);
+
 // http://wiki.osdev.org/Paging
 // http://www.brokenthorn.com/Resources/OSDev18.html
 
