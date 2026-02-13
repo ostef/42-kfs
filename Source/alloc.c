@@ -27,6 +27,8 @@ typedef struct kmalloc_header_t {
 	void *bin;
 } kmalloc_header_t;
 
+k_static_assert(sizeof(kmalloc_header_t) % 16 == 0);
+
 static const k_size_t g_kmalloc_size_classes[] = {
 	64, 128, 256, 512, 1024,
 };
@@ -50,6 +52,8 @@ typedef struct kmalloc_bin_t {
 	kmalloc_header_t *free_list;
 	kmalloc_header_t *occupied_list;
 } kmalloc_bin_t;
+
+k_static_assert(sizeof(kmalloc_bin_t) % 16 == 0);
 
 typedef struct kmalloc_big_bin_t {
 	struct kmalloc_header_t *free_list;
