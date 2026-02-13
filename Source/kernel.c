@@ -26,6 +26,22 @@ void k_assertion_failure(const char *expr, const char *msg, const char *func, co
 	k_printf(":\x1b[0m\n");
 	k_printf("    %s\n", msg);
 
+	// Clear registers
+	asm volatile(
+		"xor %%eax, %%eax\n"
+		"xor %%ebx, %%ebx\n"
+		"xor %%ecx, %%ecx\n"
+		"xor %%edx, %%edx\n"
+		"xor %%esi, %%esi\n"
+		"xor %%edi, %%edi\n"
+		:
+		:
+		: "eax", "ebx", "ecx", "edx", "esi", "edi"
+	);
+
+	// Block interrupts
+	asm volatile("cli");
+
 	k_pseudo_breakpoint();
 }
 
