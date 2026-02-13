@@ -60,7 +60,6 @@ bool is_physical_block_free(uint32_t block_index) {
     return (g_physical_memory_map[entry_index] & (1 << bit_index)) == 0;
 }
 
-static
 void mark_physical_block_as_used(uint32_t block_index) {
     k_assert(block_index < g_num_physical_blocks, "Invalid block index");
 
@@ -399,6 +398,22 @@ mem_page_dir_table_t *mem_get_current_page_dir_table() {
 	return g_current_page_dir_table;
 }
 
+uint32_t get_physical_address(virt_addr_t virt_addr) {
+	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
+	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
+	if (!dir_entry->is_present_in_physical_memory) {
+		return 0;
+	}
+
+	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
+	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
+	if (!entry->is_present_in_physical_memory) {
+		return 0;
+	}
+
+	return entry->physical_addr_4KiB * MEM_PAGE_SIZE;
+}
+
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 	// if (physical_addr == *(uint32_t *)&virt_addr) {
 	// 	k_printf("Identity mapping %p\n", physical_addr);
@@ -455,7 +470,6 @@ bool mem_unmap_page(virt_addr_t virt_addr) {
 	if (!entry->is_present_in_physical_memory) {
 		return false;
 	}
-	mem_free_physical_blocks(entry->physical_addr_4KiB, 1);
 
 	entry->is_present_in_physical_memory = 0;
 	entry->physical_addr_4KiB = 0;

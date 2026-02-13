@@ -4,12 +4,16 @@ static vmalloc_header_t *g_vmalloc_heap;
 static vmalloc_header_t *g_vmalloc_last_alloc = NULL;
 
 static void free_size(uint32_t addr, uint32_t size) {
-	uint32_t nb_pages;
+	uint32_t	nb_pages;
+	uint32_t	physical_addr;
 
 	nb_pages = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
 	for (uint32_t i = 0; i < nb_pages; i++) {
+		physical_addr = get_physical_address(make_virt_addr(addr + i * MEM_PAGE_SIZE));
+		mem_free_physical_blocks(physical_addr, 1);
 		mem_unmap_page(make_virt_addr(addr + i * MEM_PAGE_SIZE));
 	}
+
 }
 
 
@@ -21,7 +25,7 @@ void vfree(void *ptr)
 		return;
 	}
 
-	vmalloc_header_t *header = (vmalloc_header_t *)ptr - 1;
+	vmalloc_header_t *header = ((vmalloc_header_t *)ptr) - 1;
 	prev = header->prev;
 	next = header->next;
 
@@ -42,11 +46,13 @@ void *vmalloc(k_size_t size)
 {
 	uint32_t	nb_pages;
 	uint32_t	virt_addr_first_page;
+	uint32_t	alloc_size;
 
-	size += sizeof(vmalloc_header_t);
-	nb_pages = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
+	alloc_size = size + sizeof(vmalloc_header_t);
+	nb_pages = alloc_size / MEM_PAGE_SIZE + ((alloc_size % MEM_PAGE_SIZE) != 0);
 
 	uint32_t i = 0;
+	virt_addr_first_page = 0;
 	for (; i < nb_pages; i++) {
 		uint32_t block_index = get_first_free_physical_block_from(i);
 		if (block_index == 0) {
@@ -58,9 +64,10 @@ void *vmalloc(k_size_t size)
 		if (!g_vmalloc_last_alloc)
 			 virtual_addr = KERNEL_VIRT_END;
 		else
-			virtual_addr = (uint32_t)g_vmalloc_last_alloc + g_vmalloc_last_alloc->size + MEM_PAGE_SIZE * i;
+			virtual_addr = (uint32_t)g_vmalloc_last_alloc + (g_vmalloc_last_alloc->size + sizeof(vmalloc_header_t)) + MEM_PAGE_SIZE * i;
+		mark_physical_block_as_used(block_index);
 		if (mem_map_page(block_index * MEM_PAGE_SIZE, make_virt_addr(virtual_addr)) == false) {
-			if( i != 1)
+			if( i != 0)
 				free_size(virt_addr_first_page, (i - 1) * MEM_PAGE_SIZE);
 			return NULL;
 		}
@@ -80,9 +87,8 @@ void *vmalloc(k_size_t size)
 	}
 	else {
 		g_vmalloc_heap = header;
-		g_vmalloc_last_alloc = header;
 	}
-
+	g_vmalloc_last_alloc = header;
 	return (void *)(header + 1);
 }
 

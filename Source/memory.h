@@ -17,6 +17,7 @@ uint32_t mem_get_total_physical_blocks(void);
 uint32_t mem_get_remaining_physical_memory(void);
 uint32_t mem_get_total_physical_memory(void);
 
+void mark_physical_block_as_used(uint32_t block_index);
 uint32_t mem_alloc_physical_blocks(int32_t num_blocks);
 void mem_free_physical_blocks(uint32_t block, int32_t num_blocks);
 uint32_t mem_alloc_physical_memory(int32_t size);
@@ -88,6 +89,8 @@ void mem_flush_tlb(void);
 void mem_flush_page(virt_addr_t addr);
 bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
+
+uint32_t get_physical_address(virt_addr_t virt_addr);
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
 bool mem_unmap_page(virt_addr_t virt_addr);

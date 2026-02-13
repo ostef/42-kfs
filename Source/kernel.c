@@ -51,48 +51,48 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	tty_clear(0);
 
 	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
-	// uint32_t *ptr = vmalloc(10);
-	// k_printf("Allocated virtual memory at %p\n", ptr);
-	// k_printf("Size %d\n", vsize(ptr));
-	// vfree(ptr);
+	uint32_t *ptr1 = vmalloc(10);
+	k_printf("Allocated virtual memory at %p\n", ptr1);
+	k_printf("Size %d\n", vsize(ptr1));
+	vfree(ptr1);
 
 	shell_print_help();
 
-	uint8_t *ptr = kmalloc(10);
-	k_size_t size = ksize(ptr);
-	*ptr = 'a';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// uint8_t *ptr = kmalloc(10);
+	// k_size_t size = ksize(ptr);
+	// *ptr = 'a';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	ptr = kmalloc(10);
-	size = ksize(ptr);
-	*ptr = 'a';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// ptr = kmalloc(10);
+	// size = ksize(ptr);
+	// *ptr = 'a';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	kfree(ptr);
-	ptr = kmalloc(10);
-	size = ksize(ptr);
-	*ptr = 'b';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// kfree(ptr);
+	// ptr = kmalloc(10);
+	// size = ksize(ptr);
+	// *ptr = 'b';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	ptr = kmalloc(100);
-	size = ksize(ptr);
-	*ptr = 'a';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// ptr = kmalloc(100);
+	// size = ksize(ptr);
+	// *ptr = 'a';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	ptr = kmalloc(5000);
-	size = ksize(ptr);
-	*ptr = 'Z';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// ptr = kmalloc(5000);
+	// size = ksize(ptr);
+	// *ptr = 'Z';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	kfree(ptr);
+	// kfree(ptr);
 
-	ptr = kmalloc(6000);
-	size = ksize(ptr);
-	*ptr = 'E';
-	k_printf("%p : %d, %c\n", ptr, size, *ptr);
+	// ptr = kmalloc(6000);
+	// size = ksize(ptr);
+	// *ptr = 'E';
+	// k_printf("%p : %d, %c\n", ptr, size, *ptr);
 
-	ptr = kmalloc(1024 * 1024);
-	k_printf("%p\n", ptr);
+	// ptr = kmalloc(1024 * 1024);
+	// k_printf("%p\n", ptr);
 
 	shell_loop();
 }
