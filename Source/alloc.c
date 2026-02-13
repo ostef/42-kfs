@@ -1,5 +1,25 @@
 #include "alloc.h"
 
+// All allocations are 16-byte aligned
+//
+// Kmalloc manages bins. Each bin manages a list of allocation
+// There are two different types of allocations in kmalloc:
+//
+// 1- small allocations (< page size): we allocate a page worth of memory, and fragment that
+// page with as many fixed size blocks as possible. The bin is put at the
+// top of the page, and added to the list of bins. The size of the allocations
+// is one of a fixed set of size class, each allocation request is rounded up
+// to the next size class.
+//
+// 2- big allocations (>= page size): for big allocations we have only one bin per size class.
+// All bins are stored statically inside the kmalloc_heap_t structure, not
+// allocated on the go like for small allocations. Slots for big allocations
+// are not preallocated, though once a big allocation is made, the slot is reused
+// for the next allocations if it has been freed.
+//
+// For both small and big allocations, a header is put at the start of the block
+// of memory to store necessary metadata (the bin and size, prev and next ptrs).
+
 typedef struct kmalloc_header_t {
 	struct kmalloc_header_t *prev;
 	struct kmalloc_header_t *next;
