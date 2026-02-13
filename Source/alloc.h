@@ -3,12 +3,11 @@
 
 #include "memory.h"
 
-void init_allocators();
+void allocators_init();
 
 void *kmalloc(k_size_t size);
 void kfree(void *ptr);
 k_size_t ksize(void *ptr);
-void *kbrk(k_size_t increment);
 
 void *vmalloc(k_size_t size);
 void vfree(void *ptr);

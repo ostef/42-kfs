@@ -19,7 +19,9 @@ static uint32_t g_num_used_physical_blocks;
 static uint32_t g_num_physical_blocks;
 static uint32_t *g_physical_memory_map; // Bit array, maps 4 GiB of memory
 static uint32_t g_physical_memory_map_num_elements;
+static void *g_kernel_brk;
 
+static bool g_paging_enabled;
 static mem_page_dir_table_t *g_current_page_dir_table;
 
 uint32_t mem_get_used_physical_blocks() {
@@ -261,30 +263,30 @@ mem_page_dir_entry_t *mem_get_page_dir_entry(mem_page_dir_table_t *table, virt_a
 	return NULL;
 }
 
-void *mem_alloc_physical_blocks(int32_t num_blocks) {
+uint32_t mem_alloc_physical_blocks(int32_t num_blocks) {
 	uint32_t block_index = get_first_free_physical_blocks(num_blocks);
 	if (!block_index) {
-		return NULL;
+		return 0;
 	}
 
 	for (int32_t i = 0; i < num_blocks; i += 1) {
 		mark_physical_block_as_used(block_index + i);
 	}
 
-	void *ptr = (void *)get_physical_block_addr(block_index);
+	uint32_t ptr = get_physical_block_addr(block_index);
 	k_printf("Allocated %d physical block(s): %p\n", num_blocks, ptr);
 
 	return ptr;
 }
 
-void mem_free_physical_blocks(void *block, int32_t num_blocks) {
+void mem_free_physical_blocks(uint32_t block, int32_t num_blocks) {
 	if (!block || num_blocks <= 0) {
 		return;
 	}
 
-	uint32_t block_index = get_physical_block_index_of_addr((uint32_t)block);
+	uint32_t block_index = get_physical_block_index_of_addr(block);
 	k_printf("Freeing %d block(s) at %p (index %u)\n", num_blocks, block, block_index);
-	k_assert(get_physical_block_addr(block_index) == (uint32_t)block, "Block does not point to the start of a physical block");
+	k_assert(get_physical_block_addr(block_index) == block, "Block does not point to the start of a physical block");
 
 	// @Todo: ensure we cannot mark reserved blocks as free
 	for (int32_t i = 0; i < num_blocks; i += 1) {
@@ -293,13 +295,13 @@ void mem_free_physical_blocks(void *block, int32_t num_blocks) {
 	}
 }
 
-void *mem_alloc_physical_memory(int32_t size) {
+uint32_t mem_alloc_physical_memory(int32_t size) {
 	int32_t num_blocks = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
 
 	return mem_alloc_physical_blocks(num_blocks);
 }
 
-void mem_free_physical_memory(void *ptr, int32_t size) {
+void mem_free_physical_memory(uint32_t ptr, int32_t size) {
 	int32_t num_blocks = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
 
 	mem_free_physical_blocks(ptr, num_blocks);
@@ -318,6 +320,10 @@ void mem_free_physical_memory(void *ptr, int32_t size) {
 // 30 	CD 	Cache disable 			Globally enables/disable the memory cache
 // 31 	PG 	Paging 					If 1, enable paging and use the § CR3 register, else disable paging.
 void mem_set_paging_enabled(bool enabled) {
+	if (g_paging_enabled == enabled) {
+		return;
+	}
+
 	if (enabled) {
 		k_printf("Enabling paging...\n");
 	} else {
@@ -340,6 +346,8 @@ void mem_set_paging_enabled(bool enabled) {
 	} else {
 		k_printf("Disabled paging\n");
 	}
+
+	g_paging_enabled = enabled;
 }
 
 void mem_flush_tlb() {
@@ -381,15 +389,26 @@ mem_page_dir_table_t *mem_get_current_page_dir_table() {
 }
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
+	k_printf("Mapping %p to %p\n", physical_addr, virt_addr);
+
+	bool paging_was_enabled = g_paging_enabled;
+	bool should_reset_paging = false;
+
 	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
 	mem_page_dir_entry_t *dir = mem_get_page_dir_entry(dir_table, virt_addr);
 	if (!dir->is_present_in_physical_memory) {
+		// Need to allocate a new page, so make sure paging is disabled and we can
+		// access physical addresses as is
+		mem_set_paging_enabled(false);
+		should_reset_paging = true;
+
 		mem_page_table_t *table = (mem_page_table_t *)mem_alloc_physical_blocks(1);
 		if (!table) {
+			mem_set_paging_enabled(paging_was_enabled);
 			return false;
 		}
 
-		k_memset(table, 0, sizeof(*table));
+		k_memset(table, 0, sizeof(mem_page_table_t));
 
 		dir->page_table_physical_addr_4KiB = (uint32_t)table / MEM_PAGE_SIZE;
 		dir->is_writable = 1;
@@ -401,6 +420,10 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 
 	entry->is_present_in_physical_memory = 1;
 	entry->physical_addr_4KiB = physical_addr / MEM_PAGE_SIZE;
+
+	if (should_reset_paging) {
+		mem_set_paging_enabled(paging_was_enabled);
+	}
 
 	return true;
 }
@@ -430,7 +453,7 @@ void init_virtual_memory() {
 
 	// Map the kernel (first 4 MiB) to virtual address space 3 GiB
 	uint32_t phys_addr = 0;
-	uint32_t virt_addr = 0xc0000000;
+	uint32_t virt_addr = KERNEL_VIRT_START;
 	for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
 		mem_page_table_entry_t *entry = mem_get_page_table_entry(kernel_table, make_virt_addr(virt_addr));
 		k_assert(entry != NULL, "");
@@ -453,7 +476,7 @@ void init_virtual_memory() {
 	identity_dir->is_writable = 1;
 	identity_dir->page_table_physical_addr_4KiB = (uint32_t)identity_table / MEM_PAGE_SIZE;
 
-	mem_page_dir_entry_t *kernel_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(0xc0000000));
+	mem_page_dir_entry_t *kernel_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(KERNEL_VIRT_START));
 	kernel_dir->is_present_in_physical_memory = 1;
 	kernel_dir->is_writable = 1;
 	kernel_dir->page_table_physical_addr_4KiB = (uint32_t)kernel_table / MEM_PAGE_SIZE;
@@ -463,12 +486,53 @@ void init_virtual_memory() {
 	mem_change_page_dir_table(dir_table);
 	mem_set_paging_enabled(true);
 
+	g_kernel_brk = (void *)(KERNEL_VIRT_START + 0x400000);
+
 	{
 		uint32_t value = 0xbadcafe;
 		uint32_t *addr1 = &value;
-		uint32_t *addr2 = (uint32_t *)((uint32_t)addr1 + 0xc0000000);
+		uint32_t *addr2 = (uint32_t *)((uint32_t)addr1 + KERNEL_VIRT_START);
 
 		k_assert(*addr1 == 0xbadcafe, "Memory map test failed");
 		k_assert(*addr2 == 0xbadcafe, "Memory map test failed");
 	}
+}
+
+void *kbrk(k_size_t increment) {
+	k_assert(g_kernel_brk != NULL, "Kernel brk not initialized");
+
+	if (increment <= 0) {
+		return g_kernel_brk;
+	}
+
+	k_printf("Incrementing kernel brk by %d bytes\n", increment);
+
+	uint32_t num_pages_increment = (uint32_t)increment / MEM_PAGE_SIZE + (((uint32_t)increment % MEM_PAGE_SIZE) != 0);
+	uint32_t phys_brk = (uint32_t)g_kernel_brk - KERNEL_VIRT_START;
+	uint32_t phys_brk_page = phys_brk / MEM_PAGE_SIZE;
+
+	if (phys_brk_page + num_pages_increment > g_num_physical_blocks) {
+		k_printf("kbrk: exceeding total amount of physical memory (requested %d bytes)\n", increment);
+		return NULL;
+	}
+
+	for (uint32_t i = phys_brk_page; i < phys_brk_page + num_pages_increment; i += 1) {
+		if (!is_physical_block_free(i)) {
+			k_printf("kbrk: could not find contiguous blocks of memory to satisfy request (requested %d bytes)\n", increment);
+			return NULL;
+		}
+	}
+
+	for (uint32_t i = phys_brk_page; i < phys_brk_page + num_pages_increment; i += 1) {
+		mark_physical_block_as_used(i);
+		// Identity map
+		mem_map_page(phys_brk, make_virt_addr(phys_brk));
+		// Kernel map
+		mem_map_page(phys_brk, make_virt_addr((uint32_t)g_kernel_brk));
+
+		phys_brk += MEM_PAGE_SIZE;
+		g_kernel_brk += MEM_PAGE_SIZE;
+	}
+
+	return g_kernel_brk;
 }

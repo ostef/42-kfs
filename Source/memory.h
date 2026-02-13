@@ -4,6 +4,8 @@
 #include "libkernel.h"
 #include "multiboot.h"
 
+#define KERNEL_VIRT_START 0xc0000000
+
 uintptr_t get_kernel_start_phys_addr(void);
 uintptr_t get_kernel_end_phys_addr(void);
 
@@ -14,10 +16,10 @@ uint32_t mem_get_total_physical_blocks(void);
 uint32_t mem_get_remaining_physical_memory(void);
 uint32_t mem_get_total_physical_memory(void);
 
-void *mem_alloc_physical_blocks(int32_t num_blocks);
-void mem_free_physical_blocks(void *block, int32_t num_blocks);
-void *mem_alloc_physical_memory(int32_t size);
-void mem_free_physical_memory(void *ptr, int32_t size);
+uint32_t mem_alloc_physical_blocks(int32_t num_blocks);
+void mem_free_physical_blocks(uint32_t block, int32_t num_blocks);
+uint32_t mem_alloc_physical_memory(int32_t size);
+void mem_free_physical_memory(uint32_t ptr, int32_t size);
 
 void mem_print_physical_memory_map(void);
 
@@ -87,5 +89,7 @@ bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
+
+void *kbrk(k_size_t increment);
 
 #endif // MEMORY_H
