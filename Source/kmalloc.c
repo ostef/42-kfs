@@ -115,13 +115,14 @@ void alloc_pop(kmalloc_header_t **first, kmalloc_header_t *header) {
 
 	if (header->prev) {
 		header->prev->next = header->next;
-		header->prev = NULL;
 	}
 
 	if (header->next) {
 		header->next->prev = header->prev;
-		header->next = NULL;
 	}
+
+	header->prev = NULL;
+	header->next = NULL;
 }
 
 static

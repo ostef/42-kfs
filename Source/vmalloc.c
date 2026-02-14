@@ -115,13 +115,14 @@ void addr_space_pop(vmalloc_addr_space_t **first, vmalloc_addr_space_t *space) {
 
 	if (space->prev) {
 		space->prev->next = space->next;
-		space->prev = NULL;
 	}
 
 	if (space->next) {
 		space->next->prev = space->prev;
-		space->next = NULL;
 	}
+
+	space->prev = NULL;
+	space->next = NULL;
 }
 
 static
