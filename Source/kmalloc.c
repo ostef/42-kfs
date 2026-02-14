@@ -289,7 +289,7 @@ void big_free(kmalloc_big_bin_t *bin, kmalloc_header_t *alloc) {
 	alloc_push_front(&bin->free_list, alloc);
 }
 
-void allocators_init(void) {
+void kmalloc_init(void) {
 	if (!extend_heap(&g_kmalloc_heap, KMALLOC_TOTAL_CAPACITY)) {
 		k_panic("Could not initialize kmalloc");
 	}
@@ -354,7 +354,7 @@ k_size_t ksize(void *ptr) {
 	return header->size;
 }
 
-void allocators_print_info(void) {
+void kmalloc_print_info(void) {
 	k_printf("Kmalloc heap info:\n");
 
 	for (int i = 0; i < (int)NUM_KMALLOC_SIZE_CLASSES; i += 1) {

@@ -557,6 +557,13 @@ void *kbrk(k_size_t increment) {
 	k_printf("Incrementing kernel brk by %d bytes\n", increment);
 
 	uint32_t num_pages_increment = (uint32_t)increment / MEM_PAGE_SIZE + (((uint32_t)increment % MEM_PAGE_SIZE) != 0);
+	uint32_t increment_page_size = k_align_forward(increment, MEM_PAGE_SIZE);
+
+	if ((uint32_t)g_kernel_brk + increment_page_size > KERNEL_VIRT_LINEAR_MAPPING_END) {
+		k_printf("kbrk: exceeding maximum grow capacity\n");
+		return NULL;
+	}
+
 	uint32_t phys_brk = (uint32_t)g_kernel_brk - KERNEL_VIRT_START;
 	uint32_t phys_brk_page = phys_brk / MEM_PAGE_SIZE;
 

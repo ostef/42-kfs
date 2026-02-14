@@ -4,7 +4,7 @@
 #include "vga.h" // Ugh... We shouldn't need VGA specific stuff here...
 #include "ioport.h" // For QEMU specific shutdown command
 #include "memory.h"
-#include "alloc.h" // For allocators_print_info
+#include "alloc.h" // For kmalloc_print_info
 
 static char g_shell_text_buffer[200];
 static int g_shell_text_length;
@@ -207,7 +207,7 @@ void shell_loop() {
 		} else if (cmd_len >= k_strlen("mmapdump") && k_strncmp(cmd, "mmapdump", cmd_len) == 0) {
 			mem_print_physical_memory_map();
 		} else if (cmd_len >= k_strlen("allocdump") && k_strncmp(cmd, "allocdump", cmd_len) == 0) {
-			allocators_print_info();
+			kmalloc_print_info();
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);
