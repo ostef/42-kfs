@@ -104,6 +104,27 @@ void alloc_push_front(kmalloc_header_t **first, kmalloc_header_t *header) {
 }
 
 static
+void alloc_pop(kmalloc_header_t **first, kmalloc_header_t *header) {
+	if (!first || !header) {
+		return;
+	}
+
+	if (*first == header) {
+		*first = header->next;
+	}
+
+	if (header->prev) {
+		header->prev->next = header->next;
+		header->prev = NULL;
+	}
+
+	if (header->next) {
+		header->next->prev = header->prev;
+		header->next = NULL;
+	}
+}
+
+static
 kmalloc_header_t *alloc_pop_front(kmalloc_header_t **first) {
 	if (!first) {
 		return NULL;
@@ -114,62 +135,9 @@ kmalloc_header_t *alloc_pop_front(kmalloc_header_t **first) {
 		return NULL;
 	}
 
-	*first = header->next;
-
-	if (header->prev) {
-		header->prev->next = header->next;
-		header->prev = NULL;
-	}
-
-	if (header->next) {
-		header->next->prev = header->prev;
-		header->next = NULL;
-	}
+	alloc_pop(first, header);
 
 	return header;
-}
-
-static
-void alloc_push_back(kmalloc_header_t **first, kmalloc_header_t **last, kmalloc_header_t *header) {
-	if (!first || !last || !header) {
-		return;
-	}
-
-	if (*last) {
-		(*last)->next = header;
-		header->prev = *last;
-		header->next = NULL;
-		*last = header;
-	} else {
-		*first = header;
-		*last = header;
-		header->prev = NULL;
-		header->next = NULL;
-	}
-}
-
-static
-void alloc_pop(kmalloc_header_t **first, kmalloc_header_t **last, kmalloc_header_t *header) {
-	if (!first || !header) {
-		return;
-	}
-
-	if (*first == header) {
-		*first = header->next;
-	}
-	if (last && *last == header) {
-		*last = header->prev;
-	}
-
-	if (header->prev) {
-		header->prev->next = header->next;
-	}
-	if (header->next) {
-		header->next->prev = header->prev;
-	}
-
-	header->prev = NULL;
-	header->next = NULL;
 }
 
 static
@@ -279,7 +247,7 @@ void *bin_alloc(kmalloc_bin_t *bin) {
 
 static
 void bin_free(kmalloc_bin_t *bin, kmalloc_header_t *alloc) {
-	alloc_pop(&bin->occupied_list, NULL, alloc);
+	alloc_pop(&bin->occupied_list, alloc);
 	alloc_push_front(&bin->free_list, alloc);
 }
 
@@ -317,7 +285,7 @@ void *big_alloc(kmalloc_heap_t *heap, kmalloc_big_bin_t *bin) {
 
 static
 void big_free(kmalloc_big_bin_t *bin, kmalloc_header_t *alloc) {
-	alloc_pop(&bin->occupied_list, NULL, alloc);
+	alloc_pop(&bin->occupied_list, alloc);
 	alloc_push_front(&bin->free_list, alloc);
 }
 

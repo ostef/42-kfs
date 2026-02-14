@@ -12,7 +12,7 @@ SOURCE_FILES=boot.asm \
 	keyboard.c \
 	multiboot.c \
 	memory.c \
-	alloc.c \
+	kmalloc.c \
 	valloc.c \
 	shell.c \
 	LibKernel/memory.c \
@@ -34,7 +34,6 @@ LD=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-ld
 GCC=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gcc
 GDB=$(TOOLS_PREFIX)/bin/$(TARGET_ARCH)-gdb
 
-# GRUB_COMPRESS?=no
 GRUB_COMPRESS?=xz
 GDB_PORT?=1234
 
