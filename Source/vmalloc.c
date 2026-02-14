@@ -316,15 +316,18 @@ void vmalloc_print_info(void) {
 	k_printf("Vmalloc heap info:\n");
 
 	k_printf("Free address space:\n");
+	uint32_t total_unallocated_bytes = 0;
 	for (vmalloc_addr_space_t *free = g_vmalloc_heap.free_addr_space_list; free; free = free->next) {
 		k_printf("  %p - %p\n", free->min, free->max);
+		total_unallocated_bytes += get_addr_space_size(free);
 	}
+	k_printf("\nTotal free: %n\n", total_unallocated_bytes);
 
 	uint32_t total_allocated_bytes = 0;
 	k_printf("\nOccupied address space:\n");
 	for (vmalloc_addr_space_t *occupied = g_vmalloc_heap.occupied_addr_space_list; occupied; occupied = occupied->next) {
 		k_printf("  %p - %p\n", occupied->min, occupied->max);
-		total_allocated_bytes += occupied->max - occupied->min;
+		total_allocated_bytes += get_addr_space_size(occupied);
 	}
 
 	k_printf("\nTotal allocated: %n\n", total_allocated_bytes);
