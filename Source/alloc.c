@@ -392,6 +392,8 @@ void allocators_print_info(void) {
 	for (int i = 0; i < (int)NUM_KMALLOC_SIZE_CLASSES; i += 1) {
 		k_printf("Bins %d, size %n:\n", i, g_kmalloc_size_classes[i]);
 		int bin_idx = 0;
+		int total_num_free_slots = 0;
+		int total_num_occupied_slots = 0;
 		for (kmalloc_bin_t *bin = g_kmalloc_heap.bin_list[i]; bin; bin = bin->next) {
 			int num_free_slots = 0;
 			for (kmalloc_header_t *alloc = bin->free_list; alloc; alloc = alloc->next) {
@@ -405,8 +407,13 @@ void allocators_print_info(void) {
 
 			k_printf("  [%d]: %d free slot(s), %d occupied slot(s)\n", bin_idx, num_free_slots, num_occupied_slots);
 
+			total_num_free_slots += num_free_slots;
+			total_num_occupied_slots += num_occupied_slots;
+
 			bin_idx += 1;
 		}
+
+		k_printf("  %d total free slot(s), %d occupied\n", total_num_free_slots, total_num_occupied_slots);
 	}
 
 	for (int i = 0; i < (int)NUM_KMALLOC_BIG_SIZE_CLASSES; i += 1) {
