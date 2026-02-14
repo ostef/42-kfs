@@ -7,6 +7,11 @@ typedef struct vmalloc_addr_space_t {
 	uint32_t max;
 } vmalloc_addr_space_t;
 
+static
+uint32_t get_addr_space_size(vmalloc_addr_space_t *space) {
+	return space->max - space->min + 1;
+}
+
 typedef struct vmalloc_header_t {
 	vmalloc_addr_space_t *addr_space;
 	k_size_t size;
@@ -22,9 +27,9 @@ typedef struct vmalloc_heap_t {
 
 static
 vmalloc_addr_space_t *split_addr_space(vmalloc_addr_space_t **first, vmalloc_addr_space_t *space, uint32_t size) {
-	k_assert(size <= space->max - space->min, "Address space range is to small");
+	k_assert(size <= get_addr_space_size(space), "Address space range is to small");
 
-	if (space->max - space->min == size) {
+	if (get_addr_space_size(space) == size) {
 		return space;
 	}
 
@@ -146,7 +151,7 @@ virt_addr_t alloc_virt_addr_space(vmalloc_heap_t *heap, k_size_t size) {
 	vmalloc_addr_space_t *best_fit = NULL;
 	k_size_t best_fit_size = 0;
 	for (vmalloc_addr_space_t *space = heap->free_addr_space_list; space; space = space->next) {
-		k_size_t space_size = space->max - space->min;
+		k_size_t space_size = get_addr_space_size(space);
 		if (space_size > size) {
 			if (best_fit) {
 				if (space_size < best_fit_size) {
@@ -176,6 +181,21 @@ virt_addr_t alloc_virt_addr_space(vmalloc_heap_t *heap, k_size_t size) {
 }
 
 static
+void coalesce_addr_space(vmalloc_addr_space_t **list, vmalloc_addr_space_t *start) {
+	vmalloc_addr_space_t *space = start ? start : *list;
+	while (space->next && space->max == space->next->min - 1) {
+		vmalloc_addr_space_t *next = space->next;
+		space->max = next->max;
+		if (next->next) {
+			next->next->prev = space;
+		}
+		space->next = next->next;
+
+		kfree(next);
+	}
+}
+
+static
 void free_virt_addr_space(vmalloc_heap_t *heap, vmalloc_addr_space_t *space) {
 	addr_space_pop(&heap->occupied_addr_space_list, space);
 
@@ -189,24 +209,8 @@ void free_virt_addr_space(vmalloc_heap_t *heap, vmalloc_addr_space_t *space) {
 		}
 	}
 
-	// Coalesce
-	if (insert_after && insert_after->max == space->min - 1) {
-		insert_after->max = space->max;
-		kfree(space);
-
-		while (insert_after->next && insert_after->max == insert_after->next->min - 1) {
-			vmalloc_addr_space_t *next = insert_after->next;
-			insert_after->max = next->max;
-			if (next->next) {
-				next->next->prev = insert_after;
-			}
-			insert_after->next = next->next;
-
-			kfree(next);
-		}
-	} else {
-		addr_space_insert_after(&heap->free_addr_space_list, insert_after, space);
-	}
+	addr_space_insert_after(&heap->free_addr_space_list, insert_after, space);
+	coalesce_addr_space(&heap->free_addr_space_list, insert_after);
 }
 
 void *vmalloc(k_size_t size) {
