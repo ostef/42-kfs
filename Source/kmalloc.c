@@ -66,7 +66,7 @@ typedef struct kmalloc_heap_t {
 	uint8_t *curr_addr;
 
 	kmalloc_bin_t *bin_list[NUM_KMALLOC_SIZE_CLASSES];
-	kmalloc_big_bin_t big_bin_list[NUM_KMALLOC_SIZE_CLASSES];
+	kmalloc_big_bin_t big_bin_list[NUM_KMALLOC_BIG_SIZE_CLASSES];
 } kmalloc_heap_t;
 
 static kmalloc_heap_t g_kmalloc_heap;
