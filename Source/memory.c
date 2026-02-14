@@ -40,12 +40,10 @@ uint32_t mem_get_total_physical_memory() {
     return g_system_memory;
 }
 
-static
 uint32_t get_physical_block_index_of_addr(uint32_t addr) {
     return addr / MEM_PAGE_SIZE;
 }
 
-static
 uint32_t get_physical_block_addr(uint32_t block_index) {
     return block_index * MEM_PAGE_SIZE;
 }
@@ -128,7 +126,7 @@ uint32_t get_first_free_physical_block_from(uint32_t start_index)
 }
 
 static
-uint32_t get_first_free_physical_blocks(int32_t num_blocks) {
+uint32_t get_first_free_physical_blocks(int32_t num_blocks, uint32_t start_block_index, bool reverse_search) {
 	if (num_blocks <= 0) {
 		return 0;
 	}
@@ -137,17 +135,37 @@ uint32_t get_first_free_physical_blocks(int32_t num_blocks) {
 		return 0;
 	}
 
-	for (uint32_t i = 0; i < g_num_physical_blocks; i += 1) {
-		bool all_free = true;
-		for (uint32_t j = 0; j < (uint32_t)num_blocks; j += 1) {
-			if (!is_physical_block_free(i + j)) {
-				all_free = false;
-				break;
-			}
+	if (reverse_search) {
+		if (start_block_index < num_blocks) {
+			return 0;
 		}
 
-		if (all_free) {
-			return i;
+		for (uint32_t i = start_block_index - (uint32_t)num_blocks; i > 0; i -= 1) {
+			bool all_free = true;
+			for (uint32_t j = 0; j < (uint32_t)num_blocks; j += 1) {
+				if (!is_physical_block_free(i + j)) {
+					all_free = false;
+					break;
+				}
+			}
+
+			if (all_free) {
+				return i;
+			}
+		}
+	} else {
+		for (uint32_t i = start_block_index; i < g_num_physical_blocks; i += 1) {
+			bool all_free = true;
+			for (uint32_t j = 0; j < (uint32_t)num_blocks; j += 1) {
+				if (!is_physical_block_free(i + j)) {
+					all_free = false;
+					break;
+				}
+			}
+
+			if (all_free) {
+				return i;
+			}
 		}
 	}
 
@@ -273,13 +291,17 @@ mem_page_dir_entry_t *mem_get_page_dir_entry(mem_page_dir_table_t *table, virt_a
 	return NULL;
 }
 
-uint32_t mem_alloc_physical_blocks(int32_t num_blocks) {
-	uint32_t block_index = get_first_free_physical_blocks(num_blocks);
+uint32_t mem_alloc_physical_blocks(int32_t num_blocks, uint32_t start_block_index, bool reverse_search) {
+	if (num_blocks <= 0) {
+		return 0;
+	}
+
+	uint32_t block_index = get_first_free_physical_blocks(num_blocks, start_block_index, reverse_search);
 	if (!block_index) {
 		return 0;
 	}
 
-	for (int32_t i = 0; i < num_blocks; i += 1) {
+	for (uint32_t i = 0; i < (uint32_t)num_blocks; i += 1) {
 		mark_physical_block_as_used(block_index + i);
 	}
 
@@ -308,7 +330,7 @@ void mem_free_physical_blocks(uint32_t block, int32_t num_blocks) {
 uint32_t mem_alloc_physical_memory(int32_t size) {
 	int32_t num_blocks = size / MEM_PAGE_SIZE + ((size % MEM_PAGE_SIZE) != 0);
 
-	return mem_alloc_physical_blocks(num_blocks);
+	return mem_alloc_physical_blocks(num_blocks, 0, false);
 }
 
 void mem_free_physical_memory(uint32_t ptr, int32_t size) {
@@ -414,7 +436,17 @@ uint32_t get_physical_address(virt_addr_t virt_addr) {
 	return entry->physical_addr_4KiB * MEM_PAGE_SIZE;
 }
 
-bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
+mem_page_table_t *default_page_table_alloc(void) {
+	uint32_t start_search_index = get_physical_block_index_of_addr(KERNEL_VIRT_LINEAR_MAPPING_END - KERNEL_VIRT_START) - 1;
+	uint32_t addr = mem_alloc_physical_blocks(1, start_search_index, true);
+	if (!addr) {
+		return NULL;
+	}
+
+	return (mem_page_table_t *)addr;
+}
+
+bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void)) {
 	// if (physical_addr == *(uint32_t *)&virt_addr) {
 	// 	k_printf("Identity mapping %p\n", physical_addr);
 	// } else {
@@ -427,12 +459,16 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr) {
 	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
 	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
 	if (!dir_entry->is_present_in_physical_memory) {
+		if (!table_alloc_func) {
+			return false;
+		}
+
 		// Need to allocate a new page, so make sure paging is disabled and we can
 		// access physical addresses as is
 		mem_set_paging_enabled(false);
 		should_reset_paging = true;
 
-		mem_page_table_t *table = (mem_page_table_t *)mem_alloc_physical_blocks(1);
+		mem_page_table_t *table = table_alloc_func();
 		if (!table) {
 			mem_set_paging_enabled(paging_was_enabled);
 			return false;
@@ -472,33 +508,40 @@ bool mem_unmap_page(virt_addr_t virt_addr) {
 	}
 
 	entry->is_present_in_physical_memory = 0;
-	entry->physical_addr_4KiB = 0;
 
 	return true;
 }
 
 static
 void init_virtual_memory() {
-	mem_page_table_t *identity_table = (mem_page_table_t *)mem_alloc_physical_memory(sizeof(mem_page_table_t));
-	k_assert(identity_table != NULL, "Physical memory allocation failure");
+	mem_page_table_t *identity_tables[] = {
+		default_page_table_alloc(),
+		default_page_table_alloc(),
+		default_page_table_alloc(),
+		default_page_table_alloc(),
+	};
 
-	mem_page_table_t *kernel_table = (mem_page_table_t *)mem_alloc_physical_memory(sizeof(mem_page_table_t));
+	// Identity map the first 16 MiB of virtual address space (virt addr == phys addr)
+	uint32_t addr = 0;
+	for (int ti = 0; ti < k_array_count(identity_tables); ti += 1) {
+		k_assert(identity_tables[ti] != NULL, "Physical memory allocation failure");
+		k_memset(identity_tables[ti], 0, sizeof(**identity_tables));
+
+		for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
+			mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_tables[ti], make_virt_addr(addr));
+			k_assert(entry != NULL, "");
+
+			entry->is_present_in_physical_memory = 1;
+			entry->physical_addr_4KiB = addr / MEM_PAGE_SIZE;
+
+			addr += MEM_PAGE_SIZE;
+		}
+	}
+
+	mem_page_table_t *kernel_table = default_page_table_alloc();
 	k_assert(kernel_table != NULL, "Physical memory allocation failure");
 
-	k_memset(identity_table, 0, sizeof(*identity_table));
 	k_memset(kernel_table, 0, sizeof(*kernel_table));
-
-	// Identity map the first 4 MiB of virtual address space (virt addr == phys addr)
-	uint32_t addr = 0;
-	for (int32_t i = 0; i < MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
-		mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_table, make_virt_addr(addr));
-		k_assert(entry != NULL, "");
-
-		entry->is_present_in_physical_memory = 1;
-		entry->physical_addr_4KiB = addr / MEM_PAGE_SIZE;
-
-		addr += MEM_PAGE_SIZE;
-	}
 
 	// Map the kernel (first 4 MiB) to virtual address space 3 GiB
 	uint32_t phys_addr = 0;
@@ -520,17 +563,23 @@ void init_virtual_memory() {
 
 	k_memset(dir_table, 0, sizeof(*dir_table));
 
-	mem_page_dir_entry_t *identity_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(0));
-	identity_dir->is_present_in_physical_memory = 1;
-	identity_dir->is_writable = 1;
-	identity_dir->page_table_physical_addr_4KiB = (uint32_t)identity_table / MEM_PAGE_SIZE;
+	uint32_t identity_addr = 0;
+	for (int i = 0; i < k_array_count(identity_tables); i += 1) {
+		mem_page_dir_entry_t *identity_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(identity_addr));
+		k_assert(identity_dir != NULL, "");
+
+		identity_dir->is_present_in_physical_memory = 1;
+		identity_dir->is_writable = 1;
+		identity_dir->page_table_physical_addr_4KiB = (uint32_t)identity_tables[i] / MEM_PAGE_SIZE;
+
+		identity_addr += MEM_NUM_PAGE_TABLE_ENTRIES * MEM_PAGE_SIZE;
+	}
 
 	mem_page_dir_entry_t *kernel_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(KERNEL_VIRT_START));
+	k_assert(kernel_dir != NULL, "");
 	kernel_dir->is_present_in_physical_memory = 1;
 	kernel_dir->is_writable = 1;
 	kernel_dir->page_table_physical_addr_4KiB = (uint32_t)kernel_table / MEM_PAGE_SIZE;
-
-	k_assert(identity_dir != kernel_dir, "");
 
 	mem_change_page_dir_table(dir_table);
 	mem_set_paging_enabled(true);
@@ -582,9 +631,9 @@ void *kbrk(k_size_t increment) {
 	for (uint32_t i = phys_brk_page; i < phys_brk_page + num_pages_increment; i += 1) {
 		mark_physical_block_as_used(i);
 		// Identity map
-		mem_map_page(phys_brk, make_virt_addr(phys_brk));
+		mem_map_page(phys_brk, make_virt_addr(phys_brk), default_page_table_alloc);
 		// Kernel map
-		mem_map_page(phys_brk, make_virt_addr((uint32_t)g_kernel_brk));
+		mem_map_page(phys_brk, make_virt_addr((uint32_t)g_kernel_brk), default_page_table_alloc);
 
 		phys_brk += MEM_PAGE_SIZE;
 		g_kernel_brk += MEM_PAGE_SIZE;

@@ -161,7 +161,7 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, allocdump, shutdown\n");
+	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, kmallocdump, vmallocdump, shutdown\n");
 }
 
 void shell_loop() {
@@ -206,8 +206,10 @@ void shell_loop() {
 			}
 		} else if (cmd_len >= k_strlen("mmapdump") && k_strncmp(cmd, "mmapdump", cmd_len) == 0) {
 			mem_print_physical_memory_map();
-		} else if (cmd_len >= k_strlen("allocdump") && k_strncmp(cmd, "allocdump", cmd_len) == 0) {
+		} else if (cmd_len >= k_strlen("kmallocdump") && k_strncmp(cmd, "kmallocdump", cmd_len) == 0) {
 			kmalloc_print_info();
+		} else if (cmd_len >= k_strlen("vmallocdump") && k_strncmp(cmd, "vmallocdump", cmd_len) == 0) {
+			vmalloc_print_info();
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);

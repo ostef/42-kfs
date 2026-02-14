@@ -91,16 +91,26 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	interrupt_register_handler(INT_PAGE_FAULT, handle_page_fault);
 	mem_init_with_multiboot_info(multiboot_info);
 	kmalloc_init();
+	vmalloc_init();
 	kb_initialize();
 
 	tty_clear(0);
 
 	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
 
+	vmalloc_print_info();
 	uint32_t *ptr1 = vmalloc(10);
-	k_printf("Allocated virtual memory at %p\n", ptr1);
-	k_printf("Size %d\n", vsize(ptr1));
+
+	vmalloc_print_info();
 	vfree(ptr1);
+
+	vmalloc_print_info();
+	ptr1 = vmalloc(16000);
+
+	vmalloc_print_info();
+	vfree(ptr1);
+
+	vmalloc_print_info();
 
 	shell_print_help();
 

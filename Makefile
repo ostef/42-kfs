@@ -13,7 +13,7 @@ SOURCE_FILES=boot.asm \
 	multiboot.c \
 	memory.c \
 	kmalloc.c \
-	valloc.c \
+	vmalloc.c \
 	shell.c \
 	LibKernel/memory.c \
 	LibKernel/string.c \

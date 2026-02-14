@@ -73,7 +73,7 @@ void *vmalloc(k_size_t size)
 		else
 			virtual_addr = (uint32_t)g_vmalloc_last_alloc + (g_vmalloc_last_alloc->size + sizeof(vmalloc_header_t)) + MEM_PAGE_SIZE * i;
 		mark_physical_block_as_used(block_index);
-		if (mem_map_page(block_index * MEM_PAGE_SIZE, make_virt_addr(virtual_addr)) == false) {
+		if (mem_map_page(block_index * MEM_PAGE_SIZE, make_virt_addr(virtual_addr), default_page_table_alloc) == false) {
 			if( i != 0)
 				free_size(virt_addr_first_page, (i - 1) * MEM_PAGE_SIZE);
 			return NULL;

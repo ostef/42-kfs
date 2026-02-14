@@ -15,6 +15,9 @@ void *kmalloc(k_size_t size);
 void kfree(void *ptr);
 k_size_t ksize(void *ptr);
 
+void vmalloc_init(void);
+void vmalloc_print_info(void);
+
 void *vmalloc(k_size_t size);
 void vfree(void *ptr);
 k_size_t vsize(void *ptr);
