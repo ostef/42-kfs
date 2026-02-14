@@ -46,20 +46,43 @@ typedef struct idt_register_t {
 void idt_get_gate(int32_t index, uint32_t handler_address);
 void idt_load_register();
 
-typedef struct isr_registers_t {
+typedef struct interrupt_registers_t {
 	uint32_t ds;
 	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
 	uint32_t interrupt_number, error_code;
 	uint32_t eip, cs, eflags, useresp, ss;
-} isr_registers_t;
+} interrupt_registers_t;
 
-typedef void (*isr_handler_t)(isr_registers_t);
+typedef void (*interrupt_handler_t)(interrupt_registers_t);
 
-void isr_register_handler(uint8_t index, isr_handler_t handler);
+void print_interrupt_registers(interrupt_registers_t registers);
+void interrupt_register_handler(uint8_t index, interrupt_handler_t handler);
 
 // Must be divisible by 8!
 #define PIC1_VECTOR_OFFSET 32
 #define PIC2_VECTOR_OFFSET 40
+
+enum {
+	INT_DIVISION_BY_ZERO = 0,
+	INT_STEP = 1,
+	INT_NON_MASKABLE_INTERRUPT = 2,
+	INT_BREAKPOINT = 3,
+	INT_OVERFLOW = 4,
+	INT_BOUNDS_CHECK_FAILURE = 5,
+	INT_INVALID_OPCODE = 6,
+	INT_NO_COPROCESSOR = 7,
+	INT_DOUBLE_FAULT = 8,
+	INT_COPROCESSOR_SEGMENT_OVERRUN = 9,
+	INT_INVALID_TASK_STATE_SEGMENT = 10,
+	INT_SEGMENT_NOT_PRESENT = 11,
+	INT_STACK_FAULT = 12,
+	INT_GENERAL_PROTECTION_FAULT = 13,
+	INT_PAGE_FAULT = 14,
+	INT_X87_FPU_ERROR = 16,
+	INT_ALIGNMENT_CHECK_FAILURE = 17,
+	INT_MACHINE_CHECK_FAILURE = 18,
+	INT_SIMD_FPU_EXCEPTION = 19,
+};
 
 enum {
 	IRQ_BASE_INDEX_TIMER = 0,
