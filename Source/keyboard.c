@@ -18,7 +18,7 @@ static void push_event(kb_event_t event) {
     }
 }
 
-static void handle_keyboard_irq(isr_registers_t registers) {
+static void handle_keyboard_irq(interrupt_registers_t registers) {
 	(void)registers;
 
 	uint8_t scancode = ioport_read_byte(0x60);
@@ -64,7 +64,7 @@ static void handle_keyboard_irq(isr_registers_t registers) {
 }
 
 void kb_initialize() {
-	isr_register_handler(IRQ_INDEX_KEYBOARD_CONTROLLER, handle_keyboard_irq);
+	interrupt_register_handler(IRQ_INDEX_KEYBOARD_CONTROLLER, handle_keyboard_irq);
 	k_printf("Initialized keyboard controller\n");
 }
 

@@ -3,7 +3,7 @@
 
 static idt_gate_t g_idt[NUM_IDT_GATES];
 static idt_register_t g_idt_register;
-static isr_handler_t g_irq_handlers[256];
+static interrupt_handler_t g_interrupt_handlers[256];
 
 typedef uint8_t pic_port_t;
 enum {
@@ -43,8 +43,12 @@ void idt_load_register()  {
 	g_idt_register.offset = (uint32_t)&g_idt;
 	g_idt_register.size = sizeof(g_idt) - 1;
 
-	asm volatile("lidtl (%0)" : : "r"(&g_idt_register));
-	asm volatile("sti");
+	asm volatile(
+        "lidtl (%0)\n"
+        "sti"
+        :
+        : "r"(&g_idt_register)
+    );
 }
 
 void interrupts_initialize() {
@@ -132,7 +136,7 @@ void interrupts_initialize() {
 
 static const char *g_exception_messages[] = {
 	"Division By Zero",
-	"Debug",
+	"Step",
 	"Non Maskable Interrupt",
 	"Breakpoint",
 	"Into Detected Overflow",
@@ -168,19 +172,37 @@ static const char *g_exception_messages[] = {
 	"Reserved"
 };
 
-void handle_isr(isr_registers_t registers) {
-	if (registers.interrupt_number < (uint32_t)k_array_count(g_exception_messages)) {
-		k_printf("Received interrupt %u, error code %x: %s\n", registers.interrupt_number, registers.error_code, g_exception_messages[registers.interrupt_number]);
+void handle_isr(interrupt_registers_t registers) {
+	if (g_interrupt_handlers[registers.interrupt_number] != 0) {
+		interrupt_handler_t handler = g_interrupt_handlers[registers.interrupt_number];
+		handler(registers);
 	} else {
-		k_printf("Received interrupt %u, error code %x\n", registers.interrupt_number, registers.error_code);
-	}
+		if (registers.interrupt_number < (uint32_t)k_array_count(g_exception_messages)) {
+			k_printf("%s (%x)\n\n", g_exception_messages[registers.interrupt_number], registers.error_code);
+		} else {
+			k_printf("Unhandled interrupt %u (%x)\n\n", registers.interrupt_number, registers.error_code);
+		}
 
-	k_pseudo_breakpoint();
+		print_interrupt_registers(registers);
+
+		k_panic("Unhandled interrupt");
+	}
 }
 
-void isr_register_handler(uint8_t index, isr_handler_t handler) {
-	g_irq_handlers[index] = handler;
-	k_printf("Registered handler %p for IRQ %d\n", handler, index);
+void print_interrupt_registers(interrupt_registers_t registers) {
+	k_printf("Registers:\n");
+	k_printf("EIP: %p, ESP: %p, EBP: %p\n", registers.eip, registers.esp, registers.ebp);
+	k_printf(
+		"EAX: %x, EBX: %x, ECX: %x, EDX: %x, ESI: %x, EDI: %x\n",
+		registers.eax, registers.ebx, registers.ecx, registers.edx, registers.esi, registers.edi
+	);
+	k_printf("EFLAGS: %x, DS: %x, CS: %x, SS: %x\n", registers.eflags, registers.ds, registers.cs, registers.ss);
+	k_printf("\n");
+}
+
+void interrupt_register_handler(uint8_t index, interrupt_handler_t handler) {
+	g_interrupt_handlers[index] = handler;
+	k_printf("Registered handler %p for interrupt %d\n", handler, index);
 }
 
 // https://wiki.osdev.org/8259_PIC
@@ -194,7 +216,7 @@ uint16_t get_pic_in_service_register() {
 	return ((uint16_t)pic2 << 8) | ((uint16_t)pic1);
 }
 
-void handle_irq(isr_registers_t registers) {
+void handle_irq(interrupt_registers_t registers) {
 	// Handle spurious "fake" IRQs. See https://wiki.osdev.org/8259_PIC#Spurious_IRQs
 	uint8_t pic_interrupt_number = registers.interrupt_number - PIC1_VECTOR_OFFSET;
 	if (pic_interrupt_number == 7 || pic_interrupt_number == 15) {
@@ -219,8 +241,8 @@ void handle_irq(isr_registers_t registers) {
 	}
 	ioport_write_byte(PIC1_CMD, PIC_CMD_END_OF_INTERRUPT);
 
-	if (g_irq_handlers[registers.interrupt_number] != 0) {
-		isr_handler_t handler = g_irq_handlers[registers.interrupt_number];
+	if (g_interrupt_handlers[registers.interrupt_number] != 0) {
+		interrupt_handler_t handler = g_interrupt_handlers[registers.interrupt_number];
 		handler(registers);
 	}
 }
