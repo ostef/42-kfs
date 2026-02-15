@@ -1,5 +1,12 @@
 #include "alloc.h"
 
+typedef struct vmalloc_header_s {
+	struct vmalloc_header_s *prev;
+	struct vmalloc_header_s *next;
+	k_size_t size;
+	uint32_t unused; // Padding to make the header size a multiple of 16 bytes, which is important for alignment
+} vmalloc_header_t;
+
 static vmalloc_header_t *g_vmalloc_heap;
 static vmalloc_header_t *g_vmalloc_last_alloc = NULL;
 

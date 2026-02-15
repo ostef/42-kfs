@@ -328,15 +328,14 @@ k_size_t k_print_registers(void) {
 
 	k_size_t result = 0;
 	result += k_printf("Registers:\n");
-    result += k_printf("AX=%x ", eax);
-    result += k_printf("BX=%x ", ebx);
-    result += k_printf("CX=%x ", ecx);
-    result += k_printf("DX=%x ", edx);
-    result += k_printf("SI=%x ", esi);
-    result += k_printf("DI=%x ", edi);
-    result += k_printf("BP=%x ", ebp);
-    result += k_printf("SP=%x ", esp);
-	result += k_printf("\n");
+    result += k_printf("EAX=%x ", eax);
+    result += k_printf("EBX=%x ", ebx);
+    result += k_printf("ECX=%x ", ecx);
+    result += k_printf("EDX=%x ", edx);
+    result += k_printf("ESI=%x ", esi);
+    result += k_printf("EDI=%x\n", edi);
+    result += k_printf("EBP=%p ", ebp);
+    result += k_printf("ESP=%p\n", esp);
 
 	return result;
 }

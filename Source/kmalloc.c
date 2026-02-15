@@ -66,7 +66,7 @@ typedef struct kmalloc_heap_t {
 	uint8_t *curr_addr;
 
 	kmalloc_bin_t *bin_list[NUM_KMALLOC_SIZE_CLASSES];
-	kmalloc_big_bin_t big_bin_list[NUM_KMALLOC_SIZE_CLASSES];
+	kmalloc_big_bin_t big_bin_list[NUM_KMALLOC_BIG_SIZE_CLASSES];
 } kmalloc_heap_t;
 
 static kmalloc_heap_t g_kmalloc_heap;
@@ -104,6 +104,27 @@ void alloc_push_front(kmalloc_header_t **first, kmalloc_header_t *header) {
 }
 
 static
+void alloc_pop(kmalloc_header_t **first, kmalloc_header_t *header) {
+	if (!first || !header) {
+		return;
+	}
+
+	if (*first == header) {
+		*first = header->next;
+	}
+
+	if (header->prev) {
+		header->prev->next = header->next;
+		header->prev = NULL;
+	}
+
+	if (header->next) {
+		header->next->prev = header->prev;
+		header->next = NULL;
+	}
+}
+
+static
 kmalloc_header_t *alloc_pop_front(kmalloc_header_t **first) {
 	if (!first) {
 		return NULL;
@@ -114,62 +135,9 @@ kmalloc_header_t *alloc_pop_front(kmalloc_header_t **first) {
 		return NULL;
 	}
 
-	*first = header->next;
-
-	if (header->prev) {
-		header->prev->next = header->next;
-		header->prev = NULL;
-	}
-
-	if (header->next) {
-		header->next->prev = header->prev;
-		header->next = NULL;
-	}
+	alloc_pop(first, header);
 
 	return header;
-}
-
-static
-void alloc_push_back(kmalloc_header_t **first, kmalloc_header_t **last, kmalloc_header_t *header) {
-	if (!first || !last || !header) {
-		return;
-	}
-
-	if (*last) {
-		(*last)->next = header;
-		header->prev = *last;
-		header->next = NULL;
-		*last = header;
-	} else {
-		*first = header;
-		*last = header;
-		header->prev = NULL;
-		header->next = NULL;
-	}
-}
-
-static
-void alloc_pop(kmalloc_header_t **first, kmalloc_header_t **last, kmalloc_header_t *header) {
-	if (!first || !header) {
-		return;
-	}
-
-	if (*first == header) {
-		*first = header->next;
-	}
-	if (last && *last == header) {
-		*last = header->prev;
-	}
-
-	if (header->prev) {
-		header->prev->next = header->next;
-	}
-	if (header->next) {
-		header->next->prev = header->prev;
-	}
-
-	header->prev = NULL;
-	header->next = NULL;
 }
 
 static
@@ -279,7 +247,7 @@ void *bin_alloc(kmalloc_bin_t *bin) {
 
 static
 void bin_free(kmalloc_bin_t *bin, kmalloc_header_t *alloc) {
-	alloc_pop(&bin->occupied_list, NULL, alloc);
+	alloc_pop(&bin->occupied_list, alloc);
 	alloc_push_front(&bin->free_list, alloc);
 }
 
@@ -317,11 +285,11 @@ void *big_alloc(kmalloc_heap_t *heap, kmalloc_big_bin_t *bin) {
 
 static
 void big_free(kmalloc_big_bin_t *bin, kmalloc_header_t *alloc) {
-	alloc_pop(&bin->occupied_list, NULL, alloc);
+	alloc_pop(&bin->occupied_list, alloc);
 	alloc_push_front(&bin->free_list, alloc);
 }
 
-void allocators_init(void) {
+void kmalloc_init(void) {
 	if (!extend_heap(&g_kmalloc_heap, KMALLOC_TOTAL_CAPACITY)) {
 		k_panic("Could not initialize kmalloc");
 	}
@@ -386,12 +354,14 @@ k_size_t ksize(void *ptr) {
 	return header->size;
 }
 
-void allocators_print_info(void) {
+void kmalloc_print_info(void) {
 	k_printf("Kmalloc heap info:\n");
 
 	for (int i = 0; i < (int)NUM_KMALLOC_SIZE_CLASSES; i += 1) {
 		k_printf("Bins %d, size %n:\n", i, g_kmalloc_size_classes[i]);
 		int bin_idx = 0;
+		int total_num_free_slots = 0;
+		int total_num_occupied_slots = 0;
 		for (kmalloc_bin_t *bin = g_kmalloc_heap.bin_list[i]; bin; bin = bin->next) {
 			int num_free_slots = 0;
 			for (kmalloc_header_t *alloc = bin->free_list; alloc; alloc = alloc->next) {
@@ -405,8 +375,13 @@ void allocators_print_info(void) {
 
 			k_printf("  [%d]: %d free slot(s), %d occupied slot(s)\n", bin_idx, num_free_slots, num_occupied_slots);
 
+			total_num_free_slots += num_free_slots;
+			total_num_occupied_slots += num_occupied_slots;
+
 			bin_idx += 1;
 		}
+
+		k_printf("  %d total free slot(s), %d occupied\n", total_num_free_slots, total_num_occupied_slots);
 	}
 
 	for (int i = 0; i < (int)NUM_KMALLOC_BIG_SIZE_CLASSES; i += 1) {
