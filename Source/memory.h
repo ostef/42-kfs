@@ -99,6 +99,8 @@ mem_page_dir_table_t *mem_get_current_page_dir_table(void);
 
 uint32_t get_physical_address(virt_addr_t virt_addr);
 virt_addr_t find_first_unmapped_virtual_address_pages_from(virt_addr_t start_addr, int32_t num_pages);
+bool mem_is_page_mapped(virt_addr_t virt_addr);
+bool mem_are_pages_mapped(uint32_t virt_addr, int32_t num_pages);
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
 bool mem_unmap_page(virt_addr_t virt_addr);

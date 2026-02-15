@@ -100,6 +100,8 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	uint32_t *ptr1 = vmalloc(10);
 	k_printf("Allocated virtual memory at %p\n", ptr1);
 	k_printf("Size %d\n", vsize(ptr1));
+	vbrk(10);
+	k_printf("Size %d\n", vsize(ptr1));
 	vfree(ptr1);
 
 	shell_print_help();

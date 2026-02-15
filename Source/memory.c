@@ -435,6 +435,27 @@ mem_page_dir_table_t *mem_get_current_page_dir_table() {
 	return g_current_page_dir_table;
 }
 
+bool mem_is_page_mapped(virt_addr_t virt_addr)
+{
+	mem_page_table_entry_t *entry = get_table_entry_from_virt_addr(virt_addr);
+	if (!entry->is_present_in_physical_memory) {
+		return false;
+	}
+
+	return true;
+}
+
+bool mem_are_pages_mapped(uint32_t virt_addr, int32_t num_pages)
+{
+	for (int32_t i = 0; i < num_pages; i += 1) {
+		if (!mem_is_page_mapped(make_virt_addr(virt_addr + i * MEM_PAGE_SIZE))) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 uint32_t get_physical_address(virt_addr_t virt_addr) {
 	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
 	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
