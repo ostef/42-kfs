@@ -52,7 +52,8 @@ void *vmalloc(k_size_t size)
 	nb_pages = alloc_size / MEM_PAGE_SIZE + ((alloc_size % MEM_PAGE_SIZE) != 0);
 
 	uint32_t i = 0;
-	virt_addr_first_page = 0;
+	virt_addr_first_page = virt_addr_to_uint32(find_first_unmapped_virtual_address_pages_from(make_virt_addr(0), nb_pages));
+	k_printf("vmalloc: Allocating %d bytes (%d pages) at virtual address %p\n", size, nb_pages, virt_addr_first_page);
 	for (; i < nb_pages; i++) {
 		uint32_t block_index = get_first_free_physical_block_from(i);
 		if (block_index == 0) {
@@ -60,11 +61,7 @@ void *vmalloc(k_size_t size)
 				free_size(virt_addr_first_page, (i - 1) * MEM_PAGE_SIZE);
 			return NULL;
 		}
-		uint32_t virtual_addr;
-		if (!g_vmalloc_last_alloc)
-			 virtual_addr = KERNEL_VIRT_END;
-		else
-			virtual_addr = (uint32_t)g_vmalloc_last_alloc + (g_vmalloc_last_alloc->size + sizeof(vmalloc_header_t)) + MEM_PAGE_SIZE * i;
+		uint32_t virtual_addr = virt_addr_first_page + i * MEM_PAGE_SIZE;
 		mark_physical_block_as_used(block_index);
 		if (mem_map_page(block_index * MEM_PAGE_SIZE, make_virt_addr(virtual_addr)) == false) {
 			if( i != 0)
@@ -75,7 +72,6 @@ void *vmalloc(k_size_t size)
 			virt_addr_first_page = virtual_addr;
 		}
 	}
-
 	vmalloc_header_t *header = (vmalloc_header_t *)virt_addr_first_page;
 	header->size = size;
 	header->next = NULL;

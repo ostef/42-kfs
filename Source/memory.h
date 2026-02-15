@@ -41,6 +41,11 @@ virt_addr_t make_virt_addr(uint32_t addr) {
     return *((virt_addr_t *)&addr);
 }
 
+static inline
+uint32_t virt_addr_to_uint32(virt_addr_t virt_addr) {
+	return *((uint32_t *)&virt_addr);
+}
+
 typedef struct mem_page_table_entry_t {
     uint32_t is_present_in_physical_memory : 1;
     uint32_t is_writable : 1;
@@ -91,6 +96,7 @@ bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
 
 uint32_t get_physical_address(virt_addr_t virt_addr);
+virt_addr_t find_first_unmapped_virtual_address_pages_from(virt_addr_t start_addr, int32_t num_pages);
 
 bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
 bool mem_unmap_page(virt_addr_t virt_addr);
