@@ -93,18 +93,23 @@ typedef struct mem_page_dir_table_t {
 mem_page_table_entry_t *mem_get_page_table_entry(mem_page_table_t *table, virt_addr_t addr);
 mem_page_dir_entry_t *mem_get_page_dir_entry(mem_page_dir_table_t *table, virt_addr_t addr);
 
+uint32_t mem_get_cr0(void);
+void mem_set_cr0(uint32_t cr0);
 void mem_set_paging_enabled(bool enabled);
 void mem_flush_tlb(void);
 void mem_flush_page(virt_addr_t addr);
 bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
+mem_page_dir_table_t *mem_create_default_page_dir_table(bool user_mode);
 
 // Default page table alloc function, that avoids eating memory for kbrk
 // Returns a physical address, since it's used in a context where paging is disabled
 mem_page_table_t *default_page_table_alloc(void);
 
-bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void));
+bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void), bool writable);
 bool mem_unmap_page(virt_addr_t virt_addr);
+
+void mem_print_virtual_memory_map(void);
 
 void *kbrk(k_size_t increment);
 

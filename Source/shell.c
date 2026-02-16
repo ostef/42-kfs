@@ -165,7 +165,7 @@ void shell_print_help() {
 	k_printf("  help\n");
 	k_printf("  clear\n");
 	k_printf("  echo [args...]\n");
-	k_printf("  stackdump, gdtdump, mmapdump, kmallocdump, vmallocdump\n");
+	k_printf("  stackdump, gdtdump, pmapdump, vmapdump, kmallocdump, vmallocdump\n");
 	k_printf("  kmalloc {size}, kfree {ptr}, ksize {ptr}, kbrk {size}\n");
 	k_printf("  vmalloc {size}, vfree {ptr}, vsize {ptr}, vbrk {size}\n");
 	k_printf("  shutdown\n");
@@ -211,8 +211,10 @@ void shell_loop() {
 				k_printf("Entry %i at %p: %p %p\n", i / 2, gdt + i, gdt[i], gdt[i + 1]);
 				i += 2;
 			}
-		} else if (cmd_len >= k_strlen("mmapdump") && k_strncmp(cmd, "mmapdump", cmd_len) == 0) {
+		} else if (cmd_len >= k_strlen("pmapdump") && k_strncmp(cmd, "pmapdump", cmd_len) == 0) {
 			mem_print_physical_memory_map();
+		} else if (cmd_len >= k_strlen("vmapdump") && k_strncmp(cmd, "vmapdump", cmd_len) == 0) {
+			mem_print_virtual_memory_map();
 		} else if (cmd_len >= k_strlen("kmallocdump") && k_strncmp(cmd, "kmallocdump", cmd_len) == 0) {
 			kmalloc_print_info();
 		} else if (cmd_len >= k_strlen("vmallocdump") && k_strncmp(cmd, "vmallocdump", cmd_len) == 0) {

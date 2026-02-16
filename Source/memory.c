@@ -5,6 +5,10 @@
 // Set by the linker.ld script
 extern uint8_t kernel_start;
 extern uint8_t kernel_end;
+extern uint8_t kernel_text_start;
+extern uint8_t kernel_text_end;
+extern uint8_t kernel_rodata_start;
+extern uint8_t kernel_rodata_end;
 
 uintptr_t get_kernel_start_phys_addr(void) {
 	return (uintptr_t)&kernel_start;
@@ -12,6 +16,22 @@ uintptr_t get_kernel_start_phys_addr(void) {
 
 uintptr_t get_kernel_end_phys_addr(void) {
 	return (uintptr_t)&kernel_end;
+}
+
+uintptr_t get_kernel_text_start_phys_addr(void) {
+	return (uintptr_t)&kernel_text_start;
+}
+
+uintptr_t get_kernel_text_end_phys_addr(void) {
+	return (uintptr_t)&kernel_text_end;
+}
+
+uintptr_t get_kernel_rodata_start_phys_addr(void) {
+	return (uintptr_t)&kernel_rodata_start;
+}
+
+uintptr_t get_kernel_rodata_end_phys_addr(void) {
+	return (uintptr_t)&kernel_rodata_end;
 }
 
 static uint32_t g_system_memory;
@@ -257,6 +277,9 @@ void mem_print_physical_memory_map(void) {
 		return;
 	}
 
+	k_printf("Kernel start: %p, end: %p\n", get_kernel_start_phys_addr(), get_kernel_end_phys_addr());
+	k_printf("Kernel text start: %p, end: %p\n", get_kernel_text_start_phys_addr(), get_kernel_text_end_phys_addr());
+	k_printf("Kernel rodata start: %p, end: %p\n", get_kernel_rodata_start_phys_addr(), get_kernel_rodata_end_phys_addr());
 	k_printf("Used: %n, available: %n\n", g_num_used_physical_blocks * MEM_PAGE_SIZE, g_system_memory);
 	k_printf("Memory map (%d blocks, %d used blocks):\n", g_num_physical_blocks, g_num_used_physical_blocks);
 
@@ -352,6 +375,17 @@ void mem_free_physical_memory(uint32_t ptr, int32_t size) {
 // 29 	NW 	Not-write through 		Globally enables/disable write-through caching
 // 30 	CD 	Cache disable 			Globally enables/disable the memory cache
 // 31 	PG 	Paging 					If 1, enable paging and use the § CR3 register, else disable paging.
+uint32_t mem_get_cr0(void) {
+	uint32_t cr0;
+	asm volatile("mov %%cr0, %0" : "=r"(cr0));
+
+	return cr0;
+}
+
+void mem_set_cr0(uint32_t cr0) {
+	asm volatile("mov %0, %%cr0" :: "r"(cr0));
+}
+
 void mem_set_paging_enabled(bool enabled) {
 	if (g_paging_enabled == enabled) {
 		return;
@@ -363,8 +397,7 @@ void mem_set_paging_enabled(bool enabled) {
 		k_printf("Disabling paging...\n");
 	}
 
-	uint32_t cr0;
-	asm volatile("mov %%cr0, %0" : "=r"(cr0));
+	uint32_t cr0 = mem_get_cr0();
 
 	if (enabled) {
 		cr0 |= (uint32_t)(1 << 31);
@@ -372,7 +405,7 @@ void mem_set_paging_enabled(bool enabled) {
 		cr0 &= ~(uint32_t)(1 << 31);
 	}
 
-	asm volatile("mov %0, %%cr0" :: "r"(cr0));
+	mem_set_cr0(cr0);
 
 	if (enabled) {
 		k_printf("Enabled paging\n");
@@ -431,7 +464,7 @@ mem_page_table_t *default_page_table_alloc(void) {
 	return (mem_page_table_t *)addr;
 }
 
-bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void)) {
+bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void), bool writable) {
 	// if (physical_addr == *(uint32_t *)&virt_addr) {
 	// 	k_printf("Identity mapping %p\n", physical_addr);
 	// } else {
@@ -469,6 +502,7 @@ bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_
 	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
 	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
 
+	entry->is_writable = writable;
 	entry->is_present_in_physical_memory = 1;
 	entry->physical_addr_4KiB = physical_addr / MEM_PAGE_SIZE;
 
@@ -499,8 +533,7 @@ bool mem_unmap_page(virt_addr_t virt_addr) {
 	return true;
 }
 
-static
-void init_virtual_memory() {
+mem_page_dir_table_t *mem_create_default_page_dir_table(bool user_mode) {
 	mem_page_table_t *identity_tables[] = {
 		default_page_table_alloc(),
 		default_page_table_alloc(),
@@ -518,8 +551,16 @@ void init_virtual_memory() {
 			mem_page_table_entry_t *entry = mem_get_page_table_entry(identity_tables[ti], make_virt_addr(addr));
 			k_assert(entry != NULL, "");
 
+			if (addr >= get_kernel_text_start_phys_addr() && addr <= get_kernel_text_end_phys_addr()) {
+				entry->is_writable = 0;
+			} else if (addr >= get_kernel_rodata_start_phys_addr() && addr <= get_kernel_rodata_end_phys_addr()) {
+				entry->is_writable = 0;
+			} else {
+				entry->is_writable = 1;
+			}
 			entry->is_present_in_physical_memory = 1;
 			entry->physical_addr_4KiB = addr / MEM_PAGE_SIZE;
+			entry->is_user_mode = user_mode;
 
 			addr += MEM_PAGE_SIZE;
 		}
@@ -537,8 +578,17 @@ void init_virtual_memory() {
 		mem_page_table_entry_t *entry = mem_get_page_table_entry(kernel_table, make_virt_addr(virt_addr));
 		k_assert(entry != NULL, "");
 
+		if (phys_addr >= get_kernel_text_start_phys_addr() && phys_addr <= get_kernel_text_end_phys_addr()) {
+			entry->is_writable = 0;
+		} else if (phys_addr >= get_kernel_rodata_start_phys_addr() && phys_addr <= get_kernel_rodata_end_phys_addr()) {
+			entry->is_writable = 0;
+		} else {
+			entry->is_writable = 1;
+		}
+
 		entry->is_present_in_physical_memory = 1;
 		entry->physical_addr_4KiB = phys_addr / MEM_PAGE_SIZE;
+		entry->is_user_mode = user_mode;
 
 		virt_addr += MEM_PAGE_SIZE;
 		phys_addr += MEM_PAGE_SIZE;
@@ -558,6 +608,7 @@ void init_virtual_memory() {
 		identity_dir->is_present_in_physical_memory = 1;
 		identity_dir->is_writable = 1;
 		identity_dir->page_table_physical_addr_4KiB = (uint32_t)identity_tables[i] / MEM_PAGE_SIZE;
+		identity_dir->is_user_mode = user_mode;
 
 		identity_addr += MEM_NUM_PAGE_TABLE_ENTRIES * MEM_PAGE_SIZE;
 	}
@@ -567,9 +618,20 @@ void init_virtual_memory() {
 	kernel_dir->is_present_in_physical_memory = 1;
 	kernel_dir->is_writable = 1;
 	kernel_dir->page_table_physical_addr_4KiB = (uint32_t)kernel_table / MEM_PAGE_SIZE;
+	kernel_dir->is_user_mode = user_mode;
 
+	return dir_table;
+}
+
+static
+void init_virtual_memory() {
+	mem_page_dir_table_t *dir_table = mem_create_default_page_dir_table(true);
 	mem_change_page_dir_table(dir_table);
 	mem_set_paging_enabled(true);
+
+	// Enable write-protect
+	uint32_t cr0 = mem_get_cr0();
+	mem_set_cr0(cr0 | (1 << 16));
 
 	g_kernel_brk = (void *)(KERNEL_VIRT_START + 0x400000);
 
@@ -580,6 +642,12 @@ void init_virtual_memory() {
 
 		k_assert(*addr1 == 0xbadcafe, "Memory map test failed");
 		k_assert(*addr2 == 0xbadcafe, "Memory map test failed");
+	}
+
+	{
+		uint32_t *ptr = (uint32_t *)(get_kernel_text_start_phys_addr() + 16);
+		*ptr = 10;
+		k_printf("%p\n", ptr);
 	}
 }
 
@@ -618,13 +686,35 @@ void *kbrk(k_size_t increment) {
 	for (uint32_t i = phys_brk_page; i < phys_brk_page + num_pages_increment; i += 1) {
 		mark_physical_block_as_used(i);
 		// Identity map
-		mem_map_page(phys_brk, make_virt_addr(phys_brk), default_page_table_alloc);
+		mem_map_page(phys_brk, make_virt_addr(phys_brk), default_page_table_alloc, true);
 		// Kernel map
-		mem_map_page(phys_brk, make_virt_addr((uint32_t)g_kernel_brk), default_page_table_alloc);
+		mem_map_page(phys_brk, make_virt_addr((uint32_t)g_kernel_brk), default_page_table_alloc, true);
 
 		phys_brk += MEM_PAGE_SIZE;
 		g_kernel_brk += MEM_PAGE_SIZE;
 	}
 
 	return g_kernel_brk;
+}
+
+void mem_print_virtual_memory_map(void) {
+	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
+	uint32_t addr = 0;
+	for (int i = 0; i < 1024; i += 1) {
+		mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, make_virt_addr(addr));
+		if (dir_entry->is_present_in_physical_memory) {
+			mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
+			for (int j = 0; j < 1024; j += 1) {
+				mem_page_table_entry_t *table_entry = mem_get_page_table_entry(table, make_virt_addr(addr));
+
+				if (table_entry->is_present_in_physical_memory) {
+					k_printf("Page %p, writable=%u, user=%u, accessed=%u, written=%u\n", table_entry->physical_addr_4KiB * MEM_PAGE_SIZE, table_entry->is_writable, table_entry->is_user_mode, table_entry->has_been_accessed, table_entry->has_been_written_to);
+				}
+
+				addr += 4 * 1024;
+			}
+		} else {
+			addr += 4 * 1024 * 1024;
+		}
+	}
 }

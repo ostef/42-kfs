@@ -257,7 +257,7 @@ void *vmalloc(k_size_t size) {
 			block_index = get_physical_block_index_of_addr(addr) + 1;
 		}
 
-		if (!mem_map_page(addr, virt_addr, default_page_table_alloc)) {
+		if (!mem_map_page(addr, virt_addr, default_page_table_alloc, true)) {
 			return NULL;
 		}
 
