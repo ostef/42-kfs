@@ -262,7 +262,11 @@ void shell_loop() {
 			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
 			void *start = kbrk(0);
 			void *ptr = kbrk(size);
-			k_printf("kbrk: %p -> %p, requested %d bytes\n", start, ptr, size);
+			if (!ptr) {
+				k_printf("kbrk: %p -> failed, requested %d bytes\n", start, size);
+			} else {
+				k_printf("kbrk: %p -> %p, requested %d bytes\n", start, ptr, size);
+			}
 		} else if (cmd_len >= k_strlen("vmalloc") && k_strncmp(cmd, "vmalloc", cmd_len) == 0) {
 			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
 			get_next_arg(buff, len, &arg_idx, &arg_len);
@@ -305,7 +309,11 @@ void shell_loop() {
 			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
 			void *start = vbrk(0);
 			void *ptr = vbrk(size);
-			k_printf("vbrk: %p -> %p, requested %d bytes\n", start, ptr, size);
+			if (!ptr) {
+				k_printf("vbrk %p -> failed, requested %d bytes\n", start, size);
+			} else {
+				k_printf("vbrk %p -> %p, requested %d bytes\n", start, ptr, size);
+			}
 		} else if (cmd_len > 0) {
 			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
 		}
