@@ -74,6 +74,7 @@ clean:
 
 fclean: clean
 	rm $(TARGET)
+	rm $(TARGET_ISO)
 
 re: fclean all
 
