@@ -402,43 +402,6 @@ void mem_flush_page(virt_addr_t addr) {
 	);
 }
 
-mem_page_table_entry_t *get_table_entry_from_virt_addr(virt_addr_t virt_addr) {
-	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(mem_get_current_page_dir_table(), virt_addr);
-	if (!dir_entry->is_present_in_physical_memory) {
-		return NULL;
-	}
-
-	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
-	mem_page_table_entry_t *table_entry = mem_get_page_table_entry(table, virt_addr);
-	if (!table_entry->is_present_in_physical_memory) {
-		return NULL;
-	}
-	return table_entry;
-}
-
-virt_addr_t find_first_unmapped_virtual_address_pages_from(virt_addr_t start_addr, int32_t num_pages)
-{
-	uint32_t start_page;
-	uint32_t num_unmapped_pages_found = 0;
-
-	start_page = virt_addr_to_uint32(start_addr) / MEM_PAGE_SIZE;
-	for (uint32_t i = start_page; i < MEM_NUM_PAGE_DIR_TABLE_ENTRIES * MEM_NUM_PAGE_TABLE_ENTRIES; i += 1) {
-		mem_page_table_entry_t *entry = get_table_entry_from_virt_addr(make_virt_addr(i * MEM_PAGE_SIZE));
-		if (!entry || !entry->is_present_in_physical_memory) {
-			num_unmapped_pages_found += 1;
-		}
-		else {
-			num_unmapped_pages_found = 0;
-		}
-
-		if (num_unmapped_pages_found >= (uint32_t)num_pages) {
-			uint32_t directory_index = i / MEM_NUM_PAGE_TABLE_ENTRIES;
-			uint32_t page_index = i % MEM_NUM_PAGE_TABLE_ENTRIES;
-			return make_virt_addr((directory_index << 22) | (page_index << 12));
-		}
-	}
-}
-
 bool mem_change_page_dir_table(mem_page_dir_table_t *table) {
 	if (!table) {
 		return false;
@@ -455,43 +418,6 @@ bool mem_change_page_dir_table(mem_page_dir_table_t *table) {
 
 mem_page_dir_table_t *mem_get_current_page_dir_table() {
 	return g_current_page_dir_table;
-}
-
-bool mem_is_page_mapped(virt_addr_t virt_addr)
-{
-	mem_page_table_entry_t *entry = get_table_entry_from_virt_addr(virt_addr);
-	if (!entry->is_present_in_physical_memory) {
-		return false;
-	}
-
-	return true;
-}
-
-bool mem_are_pages_mapped(uint32_t virt_addr, int32_t num_pages)
-{
-	for (int32_t i = 0; i < num_pages; i += 1) {
-		if (!mem_is_page_mapped(make_virt_addr(virt_addr + i * MEM_PAGE_SIZE))) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-uint32_t get_physical_address(virt_addr_t virt_addr) {
-	mem_page_dir_table_t *dir_table = mem_get_current_page_dir_table();
-	mem_page_dir_entry_t *dir_entry = mem_get_page_dir_entry(dir_table, virt_addr);
-	if (!dir_entry->is_present_in_physical_memory) {
-		return 0;
-	}
-
-	mem_page_table_t *table = (mem_page_table_t *)(dir_entry->page_table_physical_addr_4KiB * MEM_PAGE_SIZE);
-	mem_page_table_entry_t *entry = mem_get_page_table_entry(table, virt_addr);
-	if (!entry->is_present_in_physical_memory) {
-		return 0;
-	}
-
-	return entry->physical_addr_4KiB * MEM_PAGE_SIZE;
 }
 
 mem_page_table_t *default_page_table_alloc(void) {
