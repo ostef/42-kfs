@@ -644,11 +644,11 @@ void init_virtual_memory() {
 		k_assert(*addr2 == 0xbadcafe, "Memory map test failed");
 	}
 
-	{
-		uint32_t *ptr = (uint32_t *)(get_kernel_text_start_phys_addr() + 16);
-		*ptr = 10;
-		k_printf("%p\n", ptr);
-	}
+	// {
+	// 	uint32_t *ptr = (uint32_t *)(get_kernel_text_start_phys_addr() + 16);
+	// 	*ptr = 10;
+	// 	k_printf("%p\n", ptr);
+	// }
 }
 
 void *kbrk(k_size_t increment) {
