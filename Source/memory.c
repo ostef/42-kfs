@@ -257,6 +257,7 @@ void mem_print_physical_memory_map(void) {
 		return;
 	}
 
+	k_printf("Used: %n, available: %n\n", g_num_used_physical_blocks * MEM_PAGE_SIZE, g_system_memory);
 	k_printf("Memory map (%d blocks, %d used blocks):\n", g_num_physical_blocks, g_num_used_physical_blocks);
 
 	uint32_t prev_block = 0;
