@@ -161,7 +161,14 @@ static void get_next_arg(const char *buff, k_size_t buff_len, k_size_t *inout_of
 }
 
 void shell_print_help() {
-	k_printf("Commands: help, clear, echo [args...], stackdump, gdtdump, mmapdump, allocdump, shutdown\n");
+	k_printf("Commands:\n");
+	k_printf("  help\n");
+	k_printf("  clear\n");
+	k_printf("  echo [args...]\n");
+	k_printf("  stackdump, gdtdump, mmapdump, kmallocdump, vmallocdump\n");
+	k_printf("  kmalloc {size}, kfree {ptr}, ksize {ptr}, kbrk {size}\n");
+	k_printf("  vmalloc {size}, vfree {ptr}, vsize {ptr}, vbrk {size}\n");
+	k_printf("  shutdown\n");
 }
 
 void shell_loop() {
@@ -206,11 +213,99 @@ void shell_loop() {
 			}
 		} else if (cmd_len >= k_strlen("mmapdump") && k_strncmp(cmd, "mmapdump", cmd_len) == 0) {
 			mem_print_physical_memory_map();
-		} else if (cmd_len >= k_strlen("allocdump") && k_strncmp(cmd, "allocdump", cmd_len) == 0) {
+		} else if (cmd_len >= k_strlen("kmallocdump") && k_strncmp(cmd, "kmallocdump", cmd_len) == 0) {
 			kmalloc_print_info();
+		} else if (cmd_len >= k_strlen("vmallocdump") && k_strncmp(cmd, "vmallocdump", cmd_len) == 0) {
+			vmalloc_print_info();
 		} else if (cmd_len >= k_strlen("shutdown") && k_strncmp(cmd, "shutdown", cmd_len) == 0) {
 			k_printf("Shutting down\n");
 			ioport_write_word(0x604, 0x2000);
+		} else if (cmd_len >= k_strlen("kmalloc") && k_strncmp(cmd, "kmalloc", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
+			void *ptr = kmalloc(size);
+			k_printf("kmalloc: %p, requested %d bytes, got %d\n", ptr, size, ksize(ptr));
+		} else if (cmd_len >= k_strlen("kfree") && k_strncmp(cmd, "kfree", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			void *ptr = (void *)k_str_to_uint32(buff + arg_idx, arg_len);
+			kfree(ptr);
+		} else if (cmd_len >= k_strlen("ksize") && k_strncmp(cmd, "ksize", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			void *ptr = (void *)k_str_to_uint32(buff + arg_idx, arg_len);
+			k_printf("ksize %p: %d\n", ptr, ksize(ptr));
+		} else if (cmd_len >= k_strlen("kbrk") && k_strncmp(cmd, "kbrk", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
+			void *start = kbrk(0);
+			void *ptr = kbrk(size);
+			k_printf("kbrk: %p -> %p, requested %d bytes\n", start, ptr, size);
+		} else if (cmd_len >= k_strlen("vmalloc") && k_strncmp(cmd, "vmalloc", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
+			void *ptr = vmalloc(size);
+			k_printf("vmalloc: %p, requested %d bytes, got %d\n", ptr, size, vsize(ptr));
+		} else if (cmd_len >= k_strlen("vfree") && k_strncmp(cmd, "vfree", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			void *ptr = (void *)k_str_to_uint32(buff + arg_idx, arg_len);
+			vfree(ptr);
+		} else if (cmd_len >= k_strlen("vsize") && k_strncmp(cmd, "vsize", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			void *ptr = (void *)k_str_to_uint32(buff + arg_idx, arg_len);
+			k_printf("vsize %p: %d\n", ptr, vsize(ptr));
+		} else if (cmd_len >= k_strlen("vbrk") && k_strncmp(cmd, "vbrk", cmd_len) == 0) {
+			k_size_t arg_idx = cmd_idx + cmd_len, arg_len = 0;
+			get_next_arg(buff, len, &arg_idx, &arg_len);
+			if (arg_len <= 0) {
+				k_printf("Error: expected argument\n");
+				continue;
+			}
+
+			uint32_t size = k_str_to_uint32(buff + arg_idx, arg_len);
+			void *start = vbrk(0);
+			void *ptr = vbrk(size);
+			k_printf("vbrk: %p -> %p, requested %d bytes\n", start, ptr, size);
 		} else if (cmd_len > 0) {
 			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
 		}

@@ -20,13 +20,15 @@ uint32_t mem_get_remaining_physical_memory(void);
 uint32_t mem_get_total_physical_memory(void);
 
 void mark_physical_block_as_used(uint32_t block_index);
-uint32_t mem_alloc_physical_blocks(int32_t num_blocks);
+uint32_t mem_alloc_physical_blocks(int32_t num_blocks, uint32_t start_block_index, bool reverse_search);
 void mem_free_physical_blocks(uint32_t block, int32_t num_blocks);
 uint32_t mem_alloc_physical_memory(int32_t size);
 void mem_free_physical_memory(uint32_t ptr, int32_t size);
 
 void mem_print_physical_memory_map(void);
 
+uint32_t get_physical_block_index_of_addr(uint32_t addr);
+uint32_t get_physical_block_addr(uint32_t block_index);
 uint32_t get_first_free_physical_block_from(uint32_t start_index);
 
 // http://wiki.osdev.org/Paging
@@ -102,7 +104,11 @@ virt_addr_t find_first_unmapped_virtual_address_pages_from(virt_addr_t start_add
 bool mem_is_page_mapped(virt_addr_t virt_addr);
 bool mem_are_pages_mapped(uint32_t virt_addr, int32_t num_pages);
 
-bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr);
+// Default page table alloc function, that avoids eating memory for kbrk
+// Returns a physical address, since it's used in a context where paging is disabled
+mem_page_table_t *default_page_table_alloc(void);
+
+bool mem_map_page(uint32_t physical_addr, virt_addr_t virt_addr, mem_page_table_t *(*table_alloc_func)(void));
 bool mem_unmap_page(virt_addr_t virt_addr);
 
 void *kbrk(k_size_t increment);

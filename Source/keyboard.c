@@ -8,14 +8,14 @@ static k_usize_t g_event_queue_write_index;
 static k_usize_t g_event_queue_read_index;
 
 static void push_event(kb_event_t event) {
-    g_event_queue[g_event_queue_write_index] = event;
-    g_event_queue_write_index += 1;
-    g_event_queue_write_index %= k_array_count(g_event_queue);
+	g_event_queue[g_event_queue_write_index] = event;
+	g_event_queue_write_index += 1;
+	g_event_queue_write_index %= k_array_count(g_event_queue);
 
-    if (g_event_queue_write_index == g_event_queue_read_index) {
-        g_event_queue_read_index += 1;
-        g_event_queue_read_index %= k_array_count(g_event_queue);
-    }
+	if (g_event_queue_write_index == g_event_queue_read_index) {
+		g_event_queue_read_index += 1;
+		g_event_queue_read_index %= k_array_count(g_event_queue);
+	}
 }
 
 static void handle_keyboard_irq(interrupt_registers_t registers) {
@@ -37,34 +37,44 @@ static void handle_keyboard_irq(interrupt_registers_t registers) {
 		state->repeat_count = 0;
 	}
 
-    kb_event_t event = {};
-    if (pressed) {
-        if (state->repeat_count == 0) {
-            event.type = KB_EVENT_PRESS;
-        } else {
-            event.type = KB_EVENT_REPEAT;
-        }
-    } else {
-        event.type = KB_EVENT_RELEASE;
-    }
+	kb_event_t event = {};
+	if (pressed) {
+		if (state->repeat_count == 0) {
+			event.type = KB_EVENT_PRESS;
+		} else {
+			event.type = KB_EVENT_REPEAT;
+		}
+	} else {
+		event.type = KB_EVENT_RELEASE;
+	}
 
-    event.repeat_count = state->repeat_count;
-    event.scancode = scancode;
-    push_event(event);
+	event.repeat_count = state->repeat_count;
+	event.scancode = scancode;
+	push_event(event);
 
-    if (pressed) {
-        char ascii_value = kb_translate_key_press(scancode, kb_get_mod_state());
-        if (ascii_value) {
-            kb_event_t text_input = {};
-            text_input.type = KB_EVENT_TEXT_INPUT;
-            text_input.ascii_value = ascii_value;
-            push_event(text_input);
-        }
-    }
+	if (pressed) {
+		char ascii_value = kb_translate_key_press(scancode, kb_get_mod_state());
+		if (ascii_value) {
+			kb_event_t text_input = {};
+			text_input.type = KB_EVENT_TEXT_INPUT;
+			text_input.ascii_value = ascii_value;
+			push_event(text_input);
+		}
+	}
 }
 
 void kb_initialize() {
 	interrupt_register_handler(IRQ_INDEX_KEYBOARD_CONTROLLER, handle_keyboard_irq);
+
+	// Enable PS/2 keyboard
+	ioport_write_byte(0x64, 0xAE);
+
+	// Read the scancode port to avoid it blocking further interrupts
+	while (ioport_read_byte(0x64) & 0x01) {
+		ioport_read_byte(0x60);
+	}
+
+	// ioport_write_byte(0x64, 0xAE);  // enable first PS/2 port
 	k_printf("Initialized keyboard controller\n");
 }
 
@@ -92,90 +102,90 @@ kb_mod_state_t kb_get_mod_state() {
 }
 
 static const char *g_key_names[] = {
-    "Invalid",
-    "Escape",
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
-    "0",
-    "Minus",
-    "Equal",
-    "Backspace",
-    "Tab",
-    "Q",
-    "W",
-    "E",
-    "R",
-    "T",
-    "Y",
-    "U",
-    "I",
-    "O",
-    "P",
-    "OpenBracket",
-    "CloseBracket",
-    "Return",
-    "Ctrl",
-    "A",
-    "S",
-    "D",
-    "F",
-    "G",
-    "H",
-    "J",
-    "K",
-    "L",
-    "Semicolon",
-    "Quotes",
-    "Backtick",
-    "LeftShift",
-    "Backslash",
-    "Z",
-    "X",
-    "C",
-    "V",
-    "B",
-    "N",
-    "M",
-    "Comma",
-    "Period",
-    "Slash",
-    "RightShift",
-    "PrintScreen",
-    "Alt",
-    "Space",
-    "CapsLock",
-    "F1",
-    "F2",
-    "F3",
-    "F4",
-    "F5",
-    "F6",
-    "F7",
-    "F8",
-    "F9",
-    "F10",
-    "NumLock",
-    "ScrollLock",
-    "Home",
-    "Up",
-    "PageUp",
-    "",
-    "Left",
-    "",
-    "Right",
-    "",
-    "End",
-    "Down",
-    "PageDown",
-    "Insert",
-    "Delete",
+	"Invalid",
+	"Escape",
+	"1",
+	"2",
+	"3",
+	"4",
+	"5",
+	"6",
+	"7",
+	"8",
+	"9",
+	"0",
+	"Minus",
+	"Equal",
+	"Backspace",
+	"Tab",
+	"Q",
+	"W",
+	"E",
+	"R",
+	"T",
+	"Y",
+	"U",
+	"I",
+	"O",
+	"P",
+	"OpenBracket",
+	"CloseBracket",
+	"Return",
+	"Ctrl",
+	"A",
+	"S",
+	"D",
+	"F",
+	"G",
+	"H",
+	"J",
+	"K",
+	"L",
+	"Semicolon",
+	"Quotes",
+	"Backtick",
+	"LeftShift",
+	"Backslash",
+	"Z",
+	"X",
+	"C",
+	"V",
+	"B",
+	"N",
+	"M",
+	"Comma",
+	"Period",
+	"Slash",
+	"RightShift",
+	"PrintScreen",
+	"Alt",
+	"Space",
+	"CapsLock",
+	"F1",
+	"F2",
+	"F3",
+	"F4",
+	"F5",
+	"F6",
+	"F7",
+	"F8",
+	"F9",
+	"F10",
+	"NumLock",
+	"ScrollLock",
+	"Home",
+	"Up",
+	"PageUp",
+	"",
+	"Left",
+	"",
+	"Right",
+	"",
+	"End",
+	"Down",
+	"PageDown",
+	"Insert",
+	"Delete",
 };
 
 const char *kb_get_key_name(kb_scancode_t scancode) {
@@ -187,14 +197,14 @@ const char *kb_get_key_name(kb_scancode_t scancode) {
 }
 
 static const char *g_mod_state_strings[] = {
-    "",
-    "Ctrl",
-    "Alt",
-    "Ctrl+Alt",
-    "Shift",
-    "Ctrl+Shift",
-    "Alt+Shift",
-    "Ctrl+Alt+Shift",
+	"",
+	"Ctrl",
+	"Alt",
+	"Ctrl+Alt",
+	"Shift",
+	"Ctrl+Shift",
+	"Alt+Shift",
+	"Ctrl+Alt+Shift",
 };
 
 const char *kb_get_mod_state_string(kb_mod_state_t mods) {
@@ -206,72 +216,72 @@ const char *kb_get_mod_state_string(kb_mod_state_t mods) {
 }
 
 bool kb_poll_event(kb_event_t *event) {
-    if (g_event_queue_read_index == g_event_queue_write_index) {
-        return false;
-    }
+	if (g_event_queue_read_index == g_event_queue_write_index) {
+		return false;
+	}
 
-    *event = g_event_queue[g_event_queue_read_index];
-    g_event_queue_read_index += 1;
-    g_event_queue_read_index %= k_array_count(g_event_queue);
+	*event = g_event_queue[g_event_queue_read_index];
+	g_event_queue_read_index += 1;
+	g_event_queue_read_index %= k_array_count(g_event_queue);
 
-    return true;
+	return true;
 }
 
 char kb_translate_key_press(kb_scancode_t scancode, kb_mod_state_t mods) {
-    if (mods & KB_MOD_CTRL) {
-        return 0;
-    }
+	if (mods & KB_MOD_CTRL) {
+		return 0;
+	}
 
-    switch (scancode) {
-    case KB_SCANCODE_A: return mods == KB_MOD_SHIFT ? 'A' : 'a';
-    case KB_SCANCODE_B: return mods == KB_MOD_SHIFT ? 'B' : 'b';
-    case KB_SCANCODE_C: return mods == KB_MOD_SHIFT ? 'C' : 'c';
-    case KB_SCANCODE_D: return mods == KB_MOD_SHIFT ? 'D' : 'd';
-    case KB_SCANCODE_E: return mods == KB_MOD_SHIFT ? 'E' : 'e';
-    case KB_SCANCODE_F: return mods == KB_MOD_SHIFT ? 'F' : 'f';
-    case KB_SCANCODE_G: return mods == KB_MOD_SHIFT ? 'G' : 'g';
-    case KB_SCANCODE_H: return mods == KB_MOD_SHIFT ? 'H' : 'h';
-    case KB_SCANCODE_I: return mods == KB_MOD_SHIFT ? 'I' : 'i';
-    case KB_SCANCODE_J: return mods == KB_MOD_SHIFT ? 'J' : 'j';
-    case KB_SCANCODE_K: return mods == KB_MOD_SHIFT ? 'K' : 'k';
-    case KB_SCANCODE_L: return mods == KB_MOD_SHIFT ? 'L' : 'l';
-    case KB_SCANCODE_M: return mods == KB_MOD_SHIFT ? 'M' : 'm';
-    case KB_SCANCODE_N: return mods == KB_MOD_SHIFT ? 'N' : 'n';
-    case KB_SCANCODE_O: return mods == KB_MOD_SHIFT ? 'O' : 'o';
-    case KB_SCANCODE_P: return mods == KB_MOD_SHIFT ? 'P' : 'p';
-    case KB_SCANCODE_Q: return mods == KB_MOD_SHIFT ? 'Q' : 'q';
-    case KB_SCANCODE_R: return mods == KB_MOD_SHIFT ? 'R' : 'r';
-    case KB_SCANCODE_S: return mods == KB_MOD_SHIFT ? 'S' : 's';
-    case KB_SCANCODE_T: return mods == KB_MOD_SHIFT ? 'T' : 't';
-    case KB_SCANCODE_U: return mods == KB_MOD_SHIFT ? 'U' : 'u';
-    case KB_SCANCODE_V: return mods == KB_MOD_SHIFT ? 'V' : 'v';
-    case KB_SCANCODE_W: return mods == KB_MOD_SHIFT ? 'W' : 'w';
-    case KB_SCANCODE_X: return mods == KB_MOD_SHIFT ? 'X' : 'x';
-    case KB_SCANCODE_Y: return mods == KB_MOD_SHIFT ? 'Y' : 'y';
-    case KB_SCANCODE_Z: return mods == KB_MOD_SHIFT ? 'Z' : 'z';
-    case KB_SCANCODE_SPACE: return ' ';
-    case KB_SCANCODE_BACKTICK: return mods == KB_MOD_SHIFT ? '~' : '`';
-    case KB_SCANCODE_1: return mods == KB_MOD_SHIFT ? '!' : '1';
-    case KB_SCANCODE_2: return mods == KB_MOD_SHIFT ? '@' : '2';
-    case KB_SCANCODE_3: return mods == KB_MOD_SHIFT ? '#' : '3';
-    case KB_SCANCODE_4: return mods == KB_MOD_SHIFT ? '$' : '4';
-    case KB_SCANCODE_5: return mods == KB_MOD_SHIFT ? '%' : '5';
-    case KB_SCANCODE_6: return mods == KB_MOD_SHIFT ? '^' : '6';
-    case KB_SCANCODE_7: return mods == KB_MOD_SHIFT ? '&' : '7';
-    case KB_SCANCODE_8: return mods == KB_MOD_SHIFT ? '*' : '8';
-    case KB_SCANCODE_9: return mods == KB_MOD_SHIFT ? '(' : '9';
-    case KB_SCANCODE_0: return mods == KB_MOD_SHIFT ? ')' : '0';
-    case KB_SCANCODE_MINUS: return mods == KB_MOD_SHIFT ? '_' : '-';
-    case KB_SCANCODE_EQUAL: return mods == KB_MOD_SHIFT ? '+' : '=';
-    case KB_SCANCODE_LBRACKET: return mods == KB_MOD_SHIFT ? '{' : '[';
-    case KB_SCANCODE_RBRACKET: return mods == KB_MOD_SHIFT ? '}' : ']';
-    case KB_SCANCODE_SEMICOLON: return mods == KB_MOD_SHIFT ? ':' : ';';
-    case KB_SCANCODE_QUOTES: return mods == KB_MOD_SHIFT ? '"' : '\'';
-    case KB_SCANCODE_BACKSLASH: return mods == KB_MOD_SHIFT ? '|' : '\\';
-    case KB_SCANCODE_COMMA: return mods == KB_MOD_SHIFT ? '<' : ',';
-    case KB_SCANCODE_PERIOD: return mods == KB_MOD_SHIFT ? '>' : '.';
-    case KB_SCANCODE_SLASH: return mods == KB_MOD_SHIFT ? '?' : '/';
-    }
+	switch (scancode) {
+	case KB_SCANCODE_A: return mods == KB_MOD_SHIFT ? 'A' : 'a';
+	case KB_SCANCODE_B: return mods == KB_MOD_SHIFT ? 'B' : 'b';
+	case KB_SCANCODE_C: return mods == KB_MOD_SHIFT ? 'C' : 'c';
+	case KB_SCANCODE_D: return mods == KB_MOD_SHIFT ? 'D' : 'd';
+	case KB_SCANCODE_E: return mods == KB_MOD_SHIFT ? 'E' : 'e';
+	case KB_SCANCODE_F: return mods == KB_MOD_SHIFT ? 'F' : 'f';
+	case KB_SCANCODE_G: return mods == KB_MOD_SHIFT ? 'G' : 'g';
+	case KB_SCANCODE_H: return mods == KB_MOD_SHIFT ? 'H' : 'h';
+	case KB_SCANCODE_I: return mods == KB_MOD_SHIFT ? 'I' : 'i';
+	case KB_SCANCODE_J: return mods == KB_MOD_SHIFT ? 'J' : 'j';
+	case KB_SCANCODE_K: return mods == KB_MOD_SHIFT ? 'K' : 'k';
+	case KB_SCANCODE_L: return mods == KB_MOD_SHIFT ? 'L' : 'l';
+	case KB_SCANCODE_M: return mods == KB_MOD_SHIFT ? 'M' : 'm';
+	case KB_SCANCODE_N: return mods == KB_MOD_SHIFT ? 'N' : 'n';
+	case KB_SCANCODE_O: return mods == KB_MOD_SHIFT ? 'O' : 'o';
+	case KB_SCANCODE_P: return mods == KB_MOD_SHIFT ? 'P' : 'p';
+	case KB_SCANCODE_Q: return mods == KB_MOD_SHIFT ? 'Q' : 'q';
+	case KB_SCANCODE_R: return mods == KB_MOD_SHIFT ? 'R' : 'r';
+	case KB_SCANCODE_S: return mods == KB_MOD_SHIFT ? 'S' : 's';
+	case KB_SCANCODE_T: return mods == KB_MOD_SHIFT ? 'T' : 't';
+	case KB_SCANCODE_U: return mods == KB_MOD_SHIFT ? 'U' : 'u';
+	case KB_SCANCODE_V: return mods == KB_MOD_SHIFT ? 'V' : 'v';
+	case KB_SCANCODE_W: return mods == KB_MOD_SHIFT ? 'W' : 'w';
+	case KB_SCANCODE_X: return mods == KB_MOD_SHIFT ? 'X' : 'x';
+	case KB_SCANCODE_Y: return mods == KB_MOD_SHIFT ? 'Y' : 'y';
+	case KB_SCANCODE_Z: return mods == KB_MOD_SHIFT ? 'Z' : 'z';
+	case KB_SCANCODE_SPACE: return ' ';
+	case KB_SCANCODE_BACKTICK: return mods == KB_MOD_SHIFT ? '~' : '`';
+	case KB_SCANCODE_1: return mods == KB_MOD_SHIFT ? '!' : '1';
+	case KB_SCANCODE_2: return mods == KB_MOD_SHIFT ? '@' : '2';
+	case KB_SCANCODE_3: return mods == KB_MOD_SHIFT ? '#' : '3';
+	case KB_SCANCODE_4: return mods == KB_MOD_SHIFT ? '$' : '4';
+	case KB_SCANCODE_5: return mods == KB_MOD_SHIFT ? '%' : '5';
+	case KB_SCANCODE_6: return mods == KB_MOD_SHIFT ? '^' : '6';
+	case KB_SCANCODE_7: return mods == KB_MOD_SHIFT ? '&' : '7';
+	case KB_SCANCODE_8: return mods == KB_MOD_SHIFT ? '*' : '8';
+	case KB_SCANCODE_9: return mods == KB_MOD_SHIFT ? '(' : '9';
+	case KB_SCANCODE_0: return mods == KB_MOD_SHIFT ? ')' : '0';
+	case KB_SCANCODE_MINUS: return mods == KB_MOD_SHIFT ? '_' : '-';
+	case KB_SCANCODE_EQUAL: return mods == KB_MOD_SHIFT ? '+' : '=';
+	case KB_SCANCODE_LBRACKET: return mods == KB_MOD_SHIFT ? '{' : '[';
+	case KB_SCANCODE_RBRACKET: return mods == KB_MOD_SHIFT ? '}' : ']';
+	case KB_SCANCODE_SEMICOLON: return mods == KB_MOD_SHIFT ? ':' : ';';
+	case KB_SCANCODE_QUOTES: return mods == KB_MOD_SHIFT ? '"' : '\'';
+	case KB_SCANCODE_BACKSLASH: return mods == KB_MOD_SHIFT ? '|' : '\\';
+	case KB_SCANCODE_COMMA: return mods == KB_MOD_SHIFT ? '<' : ',';
+	case KB_SCANCODE_PERIOD: return mods == KB_MOD_SHIFT ? '>' : '.';
+	case KB_SCANCODE_SLASH: return mods == KB_MOD_SHIFT ? '?' : '/';
+	}
 
-    return 0;
+	return 0;
 }
