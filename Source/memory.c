@@ -625,7 +625,7 @@ mem_page_dir_table_t *mem_create_default_page_dir_table(bool user_mode) {
 
 static
 void init_virtual_memory() {
-	mem_page_dir_table_t *dir_table = mem_create_default_page_dir_table(true);
+	mem_page_dir_table_t *dir_table = mem_create_default_page_dir_table(false);
 	mem_change_page_dir_table(dir_table);
 	mem_set_paging_enabled(true);
 
