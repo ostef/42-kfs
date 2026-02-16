@@ -67,7 +67,7 @@ void kb_initialize() {
 	interrupt_register_handler(IRQ_INDEX_KEYBOARD_CONTROLLER, handle_keyboard_irq);
 
 	// Enable PS/2 keyboard
-	outb(0x64, 0xAE)
+	ioport_write_byte(0x64, 0xAE);
 
 	// Read the scancode port to avoid it blocking further interrupts
 	while (ioport_read_byte(0x64) & 0x01) {
