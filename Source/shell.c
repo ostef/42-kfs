@@ -168,6 +168,8 @@ void shell_print_help() {
 	k_printf("  stackdump, gdtdump, pmapdump, vmapdump, kmallocdump, vmallocdump\n");
 	k_printf("  kmalloc {size}, kfree {ptr}, ksize {ptr}, kbrk {size}\n");
 	k_printf("  vmalloc {size}, vfree {ptr}, vsize {ptr}, vbrk {size}\n");
+	k_printf("  kernelmode\n");
+	k_printf("  dummyusermode\n");
 	k_printf("  shutdown\n");
 }
 
@@ -316,6 +318,11 @@ void shell_loop() {
 			} else {
 				k_printf("vbrk %p -> %p, requested %d bytes\n", start, ptr, size);
 			}
+		} else if (cmd_len >= k_strlen("kernelmode") && k_strncmp(cmd, "kernelmode", cmd_len) == 0) {
+			mem_switch_to_kernel_mode();
+		} else if (cmd_len >= k_strlen("dummyusermode") && k_strncmp(cmd, "dummyusermode", cmd_len) == 0) {
+			mem_page_dir_table_t *dir = mem_create_default_page_dir_table(true);
+			mem_change_page_dir_table(dir);
 		} else if (cmd_len > 0) {
 			k_printf("\x1b[31mError\x1b[0m: unknown command '\x1b[31m%S\x1b[0m'\n", cmd_len, cmd);
 		}

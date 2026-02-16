@@ -100,6 +100,7 @@ void mem_flush_tlb(void);
 void mem_flush_page(virt_addr_t addr);
 bool mem_change_page_dir_table(mem_page_dir_table_t *table);
 mem_page_dir_table_t *mem_get_current_page_dir_table(void);
+void mem_switch_to_kernel_mode(void);
 mem_page_dir_table_t *mem_create_default_page_dir_table(bool user_mode);
 
 // Default page table alloc function, that avoids eating memory for kbrk

@@ -623,10 +623,16 @@ mem_page_dir_table_t *mem_create_default_page_dir_table(bool user_mode) {
 	return dir_table;
 }
 
+static mem_page_dir_table_t *g_kernel_dir_table;
+
+void mem_switch_to_kernel_mode(void) {
+	mem_change_page_dir_table(g_kernel_dir_table);
+}
+
 static
 void init_virtual_memory() {
-	mem_page_dir_table_t *dir_table = mem_create_default_page_dir_table(false);
-	mem_change_page_dir_table(dir_table);
+	g_kernel_dir_table = mem_create_default_page_dir_table(false);
+	mem_change_page_dir_table(g_kernel_dir_table);
 	mem_set_paging_enabled(true);
 
 	// Enable write-protect
