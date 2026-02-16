@@ -136,7 +136,7 @@ uint32_t get_first_free_physical_blocks(int32_t num_blocks, uint32_t start_block
 	}
 
 	if (reverse_search) {
-		if (start_block_index < num_blocks) {
+		if (start_block_index < (uint32_t)num_blocks) {
 			return 0;
 		}
 
@@ -523,7 +523,7 @@ void init_virtual_memory() {
 
 	// Identity map the first 16 MiB of virtual address space (virt addr == phys addr)
 	uint32_t addr = 0;
-	for (int ti = 0; ti < k_array_count(identity_tables); ti += 1) {
+	for (int ti = 0; ti < (int)k_array_count(identity_tables); ti += 1) {
 		k_assert(identity_tables[ti] != NULL, "Physical memory allocation failure");
 		k_memset(identity_tables[ti], 0, sizeof(**identity_tables));
 
@@ -564,7 +564,7 @@ void init_virtual_memory() {
 	k_memset(dir_table, 0, sizeof(*dir_table));
 
 	uint32_t identity_addr = 0;
-	for (int i = 0; i < k_array_count(identity_tables); i += 1) {
+	for (int i = 0; i < (int)k_array_count(identity_tables); i += 1) {
 		mem_page_dir_entry_t *identity_dir = mem_get_page_dir_entry(dir_table, make_virt_addr(identity_addr));
 		k_assert(identity_dir != NULL, "");
 

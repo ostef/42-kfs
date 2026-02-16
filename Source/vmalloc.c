@@ -324,7 +324,7 @@ void *vbrk(k_size_t increment) {
 	increment = k_align_forward(increment, MEM_PAGE_SIZE);
 
 	uint32_t brk = (uint32_t)heap->brk;
-	if (increment < 0 || increment >= brk - VMALLOC_VIRT_MIN) {
+	if (increment < 0 || (uint32_t)increment >= brk - VMALLOC_VIRT_MIN) {
 		k_printf("vbrk: requested too many bytes (%d)\n", increment);
 		return NULL;
 	}
@@ -344,6 +344,8 @@ void *vbrk(k_size_t increment) {
 	}
 
 	heap->brk = (uint8_t *)heap->brk - increment;
+
+	return heap->brk;
 }
 
 void vmalloc_print_info(void) {

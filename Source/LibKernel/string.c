@@ -60,3 +60,34 @@ bool k_is_digit(char c) {
 bool k_is_space(char c) {
 	return c == ' ' || c == '\t' || c == '\n';
 }
+
+uint32_t k_str_to_uint32(const char *str, k_size_t len) {
+	int base = 10;
+	if (len >= 2 && k_strncmp(str, "0x", 2) == 0) {
+		base = 16;
+		str += 2;
+		len -= 2;
+	}
+
+	uint32_t v = 0;
+	k_size_t i = 0;
+	while (i < len) {
+		int digit = 0;
+		if (base == 16 && str[i] >= 'a' && str[i] <= 'f') {
+			digit = 10 + str[i] - 'a';
+		} else if (base == 16 && str[i] >= 'A' && str[i] <= 'F') {
+			digit = 10 + str[i] - 'A';
+		} else if (str[i] >= '0' && str[i] <= '9') {
+			digit = str[i] - '0';
+		} else {
+			break;
+		}
+
+		v *= base;
+		v += digit;
+
+		i += 1;
+	}
+
+	return v;
+}
