@@ -21,6 +21,7 @@ typedef struct vmalloc_header_t {
 k_static_assert(sizeof(vmalloc_header_t) % 16 == 0);
 
 typedef struct vmalloc_heap_t {
+	void *brk;
 	vmalloc_addr_space_t *free_addr_space_list;
 	vmalloc_addr_space_t *occupied_addr_space_list;
 } vmalloc_heap_t;
@@ -68,6 +69,7 @@ void vmalloc_init(void) {
 	base_addr_space->max = VMALLOC_VIRT_END;
 
 	g_vmalloc_heap.free_addr_space_list = base_addr_space;
+	g_vmalloc_heap.brk = (void *)VMALLOC_VIRT_START;
 }
 
 static
@@ -310,6 +312,38 @@ k_size_t vsize(void *ptr) {
 	vmalloc_header_t *header = (vmalloc_header_t *)ptr - 1;
 
 	return header->size;
+}
+
+void *vbrk(k_size_t increment) {
+	vmalloc_heap_t *heap = &g_vmalloc_heap;
+
+	if (increment <= 0) {
+		return heap->brk;
+	}
+
+	increment = k_align_forward(increment, MEM_PAGE_SIZE);
+
+	uint32_t brk = (uint32_t)heap->brk;
+	if (increment < 0 || increment >= brk - VMALLOC_VIRT_MIN) {
+		k_printf("vbrk: requested too many bytes (%d)\n", increment);
+		return NULL;
+	}
+
+	k_printf("Incrementing vbrk by %d bytes\n", increment);
+
+	if (heap->free_addr_space_list && heap->free_addr_space_list->min == brk) {
+		heap->free_addr_space_list->min -= increment;
+	} else {
+		vmalloc_addr_space_t *space = kmalloc(sizeof(vmalloc_addr_space_t));
+		k_memset(space, 0, sizeof(*space));
+
+		space->min = brk - increment;
+		space->max = brk - 1;
+
+		addr_space_insert_after(&heap->free_addr_space_list, NULL, space);
+	}
+
+	heap->brk = (uint8_t *)heap->brk - increment;
 }
 
 void vmalloc_print_info(void) {

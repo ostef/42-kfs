@@ -112,6 +112,29 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 
 	vmalloc_print_info();
 
+	vbrk(10);
+
+	vmalloc_print_info();
+
+	vmalloc(10);
+
+	vbrk(100000);
+
+	vmalloc_print_info();
+
+	vbrk(1024 * 1024 * 1024);
+
+	vmalloc_print_info();
+
+	vbrk(256 * 1024 * 1024);
+
+	vmalloc_print_info();
+
+	ptr1 = vmalloc(1024 * 1024 * 1024);
+	k_printf("%p\n", ptr1);
+
+	vmalloc_print_info();
+
 	shell_print_help();
 
 	// uint8_t *ptr = kmalloc(10);
@@ -149,6 +172,9 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 
 	// ptr = kmalloc(1024 * 1024);
 	// k_printf("%p\n", ptr);
+
+	kbrk(10);
+	kbrk(1000000);
 
 	shell_loop();
 }

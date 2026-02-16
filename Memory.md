@@ -17,6 +17,7 @@
 | 4 MiB   - 16 MiB  | Kbrk/kmalloc     |
 | ...               | ...              |
 | 3 GiB   - +16 MiB | All of the above |
+| ...               | Vbrk grow/unused |
 | 3,5 GiB - 4 GiB   | Vmalloc          |
 
 ## Notes
