@@ -714,13 +714,13 @@ void mem_print_virtual_memory_map(void) {
 				mem_page_table_entry_t *table_entry = mem_get_page_table_entry(table, make_virt_addr(addr));
 
 				if (table_entry->is_present_in_physical_memory) {
-					k_printf("Page %p, writable=%u, user=%u, accessed=%u, written=%u\n", table_entry->physical_addr_4KiB * MEM_PAGE_SIZE, table_entry->is_writable, table_entry->is_user_mode, table_entry->has_been_accessed, table_entry->has_been_written_to);
+					k_printf("Page %p -> %p, writable=%u, user=%u, accessed=%u, written=%u\n", addr, table_entry->physical_addr_4KiB * MEM_PAGE_SIZE, table_entry->is_writable, table_entry->is_user_mode, table_entry->has_been_accessed, table_entry->has_been_written_to);
 				}
 
-				addr += 4 * 1024;
+				addr += MEM_PAGE_SIZE;
 			}
 		} else {
-			addr += 4 * 1024 * 1024;
+			addr += 1024 * MEM_PAGE_SIZE;
 		}
 	}
 }
