@@ -419,11 +419,11 @@ void mem_set_paging_enabled(bool enabled) {
 void mem_flush_tlb() {
 	k_printf("TLB flush\n");
 
-	asm volatile(
-		"mov %%cr0, %%eax\n"
-		"mov %%eax, %%cr0\n"
-		: : : "eax", "memory"
-	);
+	asm volatile("mov %%cr3, %%eax\n"
+                 "mov %%eax, %%cr3\n"
+                 :
+                 :
+                 : "eax", "memory");
 }
 
 void mem_flush_page(virt_addr_t addr) {
