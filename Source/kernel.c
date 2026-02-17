@@ -6,6 +6,7 @@
 #include "shell.h"
 #include "memory.h"
 #include "alloc.h"
+#include "tss.h"
 
 void k_assertion_failure(const char *expr, const char *msg, const char *func, const char *filename, int line, bool panic) {
 	k_print_stack();
@@ -76,8 +77,9 @@ void handle_page_fault(interrupt_registers_t registers) {
 void print_multiboot_info(const multiboot_info_t *info);
 
 void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) {
-	com1_initialize();
 	tty_initialize();
+	com1_initialize();
+	init_tss();
 
 	if (magic_number != MULTIBOOT_BOOTLOADER_MAGIC) {
 		k_printf("Error: bootloader is not multiboot compliant (magic number is %x)\n", magic_number);
@@ -97,6 +99,7 @@ void kernel_main(uint32_t magic_number, const multiboot_info_t *multiboot_info) 
 	tty_clear(0);
 
 	k_printf("Welcome to \x1b[32mPantheon OS\x1b[0m!\n\n");
+	// jump_usermode();
 	shell_print_help();
 	shell_loop();
 }

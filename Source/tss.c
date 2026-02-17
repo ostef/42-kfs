@@ -21,5 +21,5 @@ void init_tss(void)
 	k_printf("TSS segment selector: %x\n", TSS_SEGMENT);
 	k_printf("STACK segment selector: %x\n", KERNEL_STACK_SEGMENT);
 	// load tss
-    asm volatile ("ltr %0" : : "r" (0x38));
+    asm volatile ("ltr %0" : : "r" (TSS_SEGMENT));
 }

@@ -102,4 +102,6 @@ k_size_t k_print_all_stack(int lines);
 k_size_t k_print_stack(void);
 k_size_t k_print_registers(void);
 
+void jump_usermode(void);
+
 #endif // LIBKERNEL_H

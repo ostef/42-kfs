@@ -154,9 +154,6 @@ Start_kernel:
 global jump_usermode
 extern enter_user_mode
 jump_usermode:
-	; Function argument: [esp + 4] points to user_func
-    mov eax, [esp + 4]      ; load the function pointer into eax
-
 	mov ax, (4 * 8) | 3 ; ring 3 data with bottom 2 bits set for ring 3
 	mov ds, ax
 	mov es, ax 
