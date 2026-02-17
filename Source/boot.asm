@@ -98,6 +98,14 @@ GDT_start:
 		db 0xF6   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b11110110
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
 		db 0x00   ; base high
+	tss_descriptor: ; placeholder
+		dw 0
+		dw 0
+		db 0
+		db 0
+		db 0
+		db 0 
+
 GDT_end:
 
 CODE_SEGMENT equ code_descriptor - GDT_start
@@ -107,6 +115,8 @@ KERNEL_STACK_SEGMENT equ kernel_stack_descriptor - GDT_start
 USER_CODE_SEGMENT equ ucode_descriptor - GDT_start
 USER_DATA_SEGMENT equ udata_descriptor - GDT_start
 USER_STACK_SEGMENT equ ustack_descriptor - GDT_start
+
+TSS_SEGMENT equ tss_descriptor - GDT_start
 
 GDT_PHYS_ADDR equ 0x800
 
@@ -130,6 +140,34 @@ Start_kernel:
 	extern kernel_main
 	call kernel_main
 
+
+; C declaration: void flush_tss(void);
+global flush_tss
+flush_tss:
+	mov ax, (5 * 8) | 0 ; fifth 8-byte selector, symbolically OR-ed with 0 to set the RPL (requested privilege level).
+	ltr ax
+	ret
+
+global jump_usermode
+extern test_user_function
+jump_usermode:
+	; Function argument: [esp + 4] points to user_func
+    mov eax, [esp + 4]      ; load the function pointer into eax
+
+	mov ax, (4 * 8) | 3 ; ring 3 data with bottom 2 bits set for ring 3
+	mov ds, ax
+	mov es, ax 
+	mov fs, ax 
+	mov gs, ax ; SS is handled by iret
+
+	; set up the stack frame iret expects
+	mov eax, esp
+	push (4 * 8) | 3 ; data selector
+	push eax ; current esp
+	pushf ; eflags
+	push (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
+	push eax ; instruction address to return to
+	iret
 
 global _start:function (_start.end - _start)
 _start:
