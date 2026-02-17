@@ -105,18 +105,21 @@ GDT_start:
 		db 0
 		db 0
 		db 0 
-
 GDT_end:
 
 CODE_SEGMENT equ code_descriptor - GDT_start
 DATA_SEGMENT equ data_descriptor - GDT_start
 
-KERNEL_STACK_SEGMENT equ kernel_stack_descriptor - GDT_start
+global KERNEL_STACK_SEGMENT
+KERNEL_STACK_SEGMENT:
+	dw kernel_stack_descriptor - GDT_start
 USER_CODE_SEGMENT equ ucode_descriptor - GDT_start
 USER_DATA_SEGMENT equ udata_descriptor - GDT_start
 USER_STACK_SEGMENT equ ustack_descriptor - GDT_start
 
-TSS_SEGMENT equ tss_descriptor - GDT_start
+global TSS_SEGMENT
+TSS_SEGMENT:
+	dw tss_descriptor - GDT_start
 
 GDT_PHYS_ADDR equ 0x800
 
@@ -131,7 +134,7 @@ Start_kernel:
 	mov		ss, ax
 	mov		es, ax
 
-	mov ax, KERNEL_STACK_SEGMENT	; set stack segment to kernel stack selector (0x18)
+	mov ax, [KERNEL_STACK_SEGMENT]	; set stack segment to kernel stack selector (0x18)
 	mov ss, ax
 
 	mov esp, stack_top
@@ -142,14 +145,14 @@ Start_kernel:
 
 
 ; C declaration: void flush_tss(void);
-global flush_tss
-flush_tss:
-	mov ax, (5 * 8) | 0 ; fifth 8-byte selector, symbolically OR-ed with 0 to set the RPL (requested privilege level).
-	ltr ax
-	ret
+; global flush_tss
+; flush_tss:
+; 	mov ax, (8 * 8) | 0 ; fifth 8-byte selector, symbolically OR-ed with 0 to set the RPL (requested privilege level).
+; 	ltr ax
+; 	ret
 
 global jump_usermode
-extern test_user_function
+extern enter_user_mode
 jump_usermode:
 	; Function argument: [esp + 4] points to user_func
     mov eax, [esp + 4]      ; load the function pointer into eax
@@ -166,7 +169,7 @@ jump_usermode:
 	push eax ; current esp
 	pushf ; eflags
 	push (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
-	push eax ; instruction address to return to
+	push enter_user_mode ; instruction address to return to
 	iret
 
 global _start:function (_start.end - _start)

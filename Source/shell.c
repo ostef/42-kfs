@@ -209,7 +209,7 @@ void shell_loop() {
 			uint32_t *gdt = (uint32_t *)0x800;
 
 			int i = 0;
-			while (i < (8 * 7) / 4) {
+			while (i < (8 * 8) / 4) {
 				k_printf("Entry %i at %p: %p %p\n", i / 2, gdt + i, gdt[i], gdt[i + 1]);
 				i += 2;
 			}

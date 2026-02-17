@@ -3,11 +3,13 @@ TARGET=kernel.bin
 TARGET_ARCH=i686-elf
 SOURCE_FILES=boot.asm \
 	kernel.c \
+	vga.c \
+	tty.c \
+	gdt.c \
+	tss.c \
 	com.c \
 	ioport.c \
 	interrupts.c \
-	vga.c \
-	tty.c \
 	interrupt_handlers.asm \
 	keyboard.c \
 	multiboot.c \
@@ -18,7 +20,8 @@ SOURCE_FILES=boot.asm \
 	LibKernel/memory.c \
 	LibKernel/string.c \
 	LibKernel/print.c \
-	LibKernel/util.c
+	LibKernel/util.c \
+	user_mode.c
 
 OBJECT_FILES=$(addsuffix .o,$(SOURCE_FILES))
 DEP_FILES=$(addsuffix .d,$(SOURCE_FILES))
