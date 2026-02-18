@@ -3,7 +3,7 @@
 
 #include "libkernel.h"
 
-extern const uint32_t KERNEL_STACK_SEGMENT;
+extern const uint16_t KERNEL_STACK_SEGMENT;
 extern const uint16_t TSS_SEGMENT;
 
 struct gdt_entry_s

@@ -74,7 +74,7 @@ GDT_start:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
-		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b10010110
+		db 0x92   ; 0x92 => present = 1, ring 0 ( 2 bits) = 00, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 0, writable = 1, accessed (manage by cpu) = 0) => 0b10010110
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
 		db 0x00   ; base high
 	ucode_descriptor:
@@ -95,7 +95,7 @@ GDT_start:
 		dw 0xFFFF ; limit low
 		dw 0x0000 ; base low		16 bits +
 		db 0x00   ; base middle		8 bits
-		db 0xF6   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 1, writable = 1, accessed (manage by cpu) = 0) => 0b11110110
+		db 0xF2   ; 0xF2 => present = 1, ring 3 ( 2 bits) = 11, type (code/data segment) = 1, flags (code segment(executable) = 0, direction = 0, writable = 1, accessed (manage by cpu) = 0) => 0b11110010
 		db 0xCF   ; granularity (limit * 4KB) = 1, 32-bit memory = 1, unused (2 bits) = 00, limit high (4 bits) = 0b1111 => 01001111
 		db 0x00   ; base high
 	tss_descriptor: ; placeholder
@@ -154,18 +154,18 @@ Start_kernel:
 global jump_usermode
 extern enter_user_mode
 jump_usermode:
-	mov ax, (4 * 8) | 3 ; ring 3 data with bottom 2 bits set for ring 3
+	mov ax, USER_DATA_SEGMENT | 3 ; ring 3 data with bottom 2 bits set for ring 3
 	mov ds, ax
 	mov es, ax 
 	mov fs, ax 
 	mov gs, ax ; SS is handled by iret
 
 	; set up the stack frame iret expects
-	mov eax, esp
-	push (4 * 8) | 3 ; data selector
+	mov eax, u_stack_top ; user stack top
+	push USER_STACK_SEGMENT | 3
 	push eax ; current esp
 	pushf ; eflags
-	push (3 * 8) | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
+	push USER_CODE_SEGMENT | 3 ; code selector (ring 3 code with bottom 2 bits set for ring 3)
 	push enter_user_mode ; instruction address to return to
 	iret
 
