@@ -6,8 +6,8 @@ struct tss_entry_s g_tss_entry = {0};
 void init_tss(void)
 {
 
-	g_tss_entry.ss = KERNEL_STACK_SEGMENT;
-	g_tss_entry.esp = (uint32_t)&stack_top;
+	g_tss_entry.ss0 = KERNEL_STACK_SEGMENT;
+	g_tss_entry.esp0 = (uint32_t)&stack_top;
 	g_tss_entry.iomap_base = sizeof(struct tss_entry_s); // No I/O bitmap
 
 
